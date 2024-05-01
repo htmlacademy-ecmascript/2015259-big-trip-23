@@ -15,8 +15,8 @@ export default class Presenter {
 
   init() {
     render(new FilterView(), filterElement);
-    render(new SortView(), this.boardContainer);
     render(new EditFormView(), this.boardContainer);
+    render(new SortView(), this.boardContainer);
 
     for (let i = 0; i < POINTS_COUNT; i++) {
       render(new PointView(), this.boardContainer);
