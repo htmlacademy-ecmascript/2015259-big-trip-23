@@ -7,19 +7,10 @@ import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
 
 function createPointTemplate(point, destinations, offers) {
-  const {
-    destination,
-    basePrice: price,
-    dateFrom: dateFrom,
-    dateTo: dateTo,
-    isFavorite: isFavorite,
-    type,
-    offers: offersList,
-  } = point;
-
-  const pointDestination = destinations.find((dest) => dest.id === destination);
+  const { basePrice, dateFrom, dateTo, isFavorite, type } = point;
+  const pointDestination = destinations.find((dest) => dest.id === point.destination);
   const typeOffers = offers.find((offer) => offer.type === type).offers;
-  const pointOffers = typeOffers.filter((typeOffer) => offersList.includes(typeOffer.id));
+  const pointOffers = typeOffers.filter((typeOffer) => point.offers.includes(typeOffer.id));
   const dateFromFormat = formatDateInForm(dateFrom, DATE_FORMAT);
   const timeFromFormat = formatDateInForm(dateFrom, TIME_FORMAT);
   const timeToFormat = formatDateInForm(dateTo, TIME_FORMAT);
@@ -43,7 +34,7 @@ function createPointTemplate(point, destinations, offers) {
         <p class="event__duration">${durationOfStayFormat}</p>
       </div>
       <p class="event__price">
-        &euro;&nbsp;<span class="event__price-value">${price}</span>
+        &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
       </p>
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">

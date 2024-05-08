@@ -87,7 +87,7 @@ const mockOffers = [
     ]
   },
   {
-    type: `${POINT_TYPES[2]}`,
+    type: `${POINT_TYPES[1]}`,
     offers: []
   },
 ];

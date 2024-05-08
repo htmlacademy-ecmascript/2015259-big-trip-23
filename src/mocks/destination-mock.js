@@ -47,7 +47,7 @@ const mockDestinations = [
     ]
   },
   {
-    id: 'bfa5cb75-a1fe-4b77-a78c-0e528e910e04',
+    id: 'bfa5cb75-a1fe-4b77-a88c-0e528e910e04',
     description: 'Stockholm is the capital of Sweden, as well as one of the largest Scandinavian cities, famous for its colorful buildings and the “Stockholm syndrome” discovered here.',
     name: 'Stockholm',
     pictures: [
