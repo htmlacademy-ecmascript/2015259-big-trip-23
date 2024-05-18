@@ -3,9 +3,9 @@ const POINT_TYPES = ['taxi','bus', 'train','ship', 'drive','flight', 'check-in',
 
 const POINTS_COUNT = 3;
 
-const DATE_FORMAT = 'D MMM';
-const TIME_FORMAT = 'hh:mm';
-const FULL_DATE_FORMAT = 'YY/MM/DD';
+const DATE_FORMAT = 'MMM DD';
+const TIME_FORMAT = 'HH:mm';
+const FULL_DATE_FORMAT = 'DD/MM/YY';
 
 export {
   CITIES,
