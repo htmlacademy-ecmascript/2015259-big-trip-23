@@ -22,37 +22,27 @@ const mockOffers = [
     ]
   },
   {
-    type: `${POINT_TYPES[5]}`,
+    type: `${POINT_TYPES[1]}`,
     offers: [
-      {
-        id: 'b4c3e4e6-9053-42ce-b747-e441314baa31',
-        title: 'Add luggage',
-        price: 30
-      },
-      {
-        id: 'b4c3e4e6-9053-42ce-b747-e551314baa31',
-        title: 'Meeting with a sign',
-        price: 20
-      },
-      {
-        id: 'b4c3e4e6-9053-42ce-b747-e661314baa31',
-        title: 'Upgrade to a business class',
-        price: 120
-      },
-      {
-        id: 'b4c3e4e6-9053-42ce-b747-e771314baa31',
-        title: 'Switch to comfort class',
-        price: 80
-      },
-      {
-        id: 'b4c3e4e6-9053-42ce-b747-e881314baa31',
-        title: 'Add meal',
-        price: 20
-      },
       {
         id: 'b4c3e4e6-9053-42ce-b747-e991314baa31',
         title: 'Choose seats',
         price: 10
+      }
+    ]
+  },
+  {
+    type: `${POINT_TYPES[2]}`,
+    offers: [
+      {
+        'id': 'c682fcde-47f0-44fd-b4c6-6584da081a78',
+        'title': 'Order a breakfast',
+        'price': 80
+      },
+      {
+        'id': 'dd6ca56f-e08e-4c6c-94a2-707bb38a63af',
+        'title': 'Wake up at a certain time',
+        'price': 63
       }
     ]
   },
@@ -87,9 +77,39 @@ const mockOffers = [
     ]
   },
   {
-    type: `${POINT_TYPES[2]}`,
+    type: `${POINT_TYPES[4]}`,
     offers: []
+  },
+  {
+    type: `${POINT_TYPES[5]}`,
+    offers: [
+      {
+        id: 'b4c3e4e6-9053-42ce-b747-e441314baa31',
+        title: 'Add luggage',
+        price: 30
+      },
+      {
+        id: 'b4c3e4e6-9053-42ce-b747-e551314baa31',
+        title: 'Meeting with a sign',
+        price: 20
+      },
+      {
+        id: 'b4c3e4e6-9053-42ce-b747-e661314baa31',
+        title: 'Upgrade to a business class',
+        price: 120
+      },
+      {
+        id: 'b4c3e4e6-9053-42ce-b747-e771314baa31',
+        title: 'Switch to comfort class',
+        price: 80
+      },
+      {
+        id: 'b4c3e4e6-9053-42ce-b747-e881314baa31',
+        title: 'Add meal',
+        price: 20
+      }
+    ]
   },
 ];
 
-export {mockOffers};
+export { mockOffers };
