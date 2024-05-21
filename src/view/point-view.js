@@ -1,5 +1,5 @@
 import { DATE_FORMAT, TIME_FORMAT } from '../const.js';
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { formatDateInForm } from '../utils.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -16,6 +16,13 @@ function createPointTemplate(point, destinations, offers) {
   const timeToFormat = formatDateInForm(dateTo, TIME_FORMAT);
   const durationOfStay = dayjs.duration(dayjs(dateTo).diff(dayjs(dateFrom)));
   const durationOfStayFormat = `${durationOfStay.days() > 1 ? `${durationOfStay.days()}D` : ''} ${durationOfStay.hours()}H ${durationOfStay.minutes()}M`;
+  const renderPointsOffers = () => pointOffers.map(({ price: destinationPrice, title }) => `
+      <li class="event__offer">
+        <span class="event__offer-title">${title}</span>
+        &plus;&euro;&nbsp;
+        <span class="event__offer-price">${destinationPrice}</span>
+      </li>
+    `).join('');
 
 
   return (
@@ -38,13 +45,7 @@ function createPointTemplate(point, destinations, offers) {
       </p>
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">
-      ${pointOffers.map(({ price: destinationPrice, title }) => `
-      <li class="event__offer">
-        <span class="event__offer-title">${title}</span>
-        &plus;&euro;&nbsp;
-        <span class="event__offer-price">${destinationPrice}</span>
-      </li>
-    `).join('')}
+      ${renderPointsOffers()}
       </ul>
       <button class="event__favorite-btn   ${isFavorite ? 'event__favorite-btn--active' : ''}" type="button">
         <span class="visually-hidden">Add to favorite</span>
@@ -59,26 +60,28 @@ function createPointTemplate(point, destinations, offers) {
   );
 }
 
-export default class PointView {
-  constructor({ point, boardDestinations, boardOffers }) {
-    this.point = point;
-    this.destinations = boardDestinations;
-    this.offers = boardOffers;
+export default class PointView extends AbstractView {
+  #point = null;
+  #destinations = null;
+  #offers = null;
+  #handleEditClick = null;
+
+  constructor({ point, boardDestinations, boardOffers, onEditClick }) {
+    super();
+    this.#point = point;
+    this.#destinations = boardDestinations;
+    this.#offers = boardOffers;
+    this.#handleEditClick = onEditClick;
+
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
   }
 
-  getTemplate() {
-    return createPointTemplate(this.point, this.destinations, this.offers);
+  get template() {
+    return createPointTemplate(this.#point, this.#destinations, this.#offers);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
-  }
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditClick();
+  };
 }

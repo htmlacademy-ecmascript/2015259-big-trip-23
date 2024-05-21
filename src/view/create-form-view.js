@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function createCreationFormTemplate() {
   return (`<li class="trip-events__item"><form class="event event--edit" action="#" method="post"><header class="event__header">
@@ -141,19 +141,12 @@ function createCreationFormTemplate() {
  </form></li>`);
 }
 
-export default class CreationFormView {
-  getTemplate() {
+export default class CreationFormView extends AbstractView {
+  constructor() {
+    super();
+  }
+
+  get template() {
     return createCreationFormTemplate();
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
   }
 }
