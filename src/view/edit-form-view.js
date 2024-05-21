@@ -174,7 +174,6 @@ function createEditFormTemplate(point, destinations, offers) {
     </form>`
   );
 }
-
 export default class EditFormView extends AbstractView {
   #point = null;
   #destinations = null;
