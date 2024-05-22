@@ -6,25 +6,35 @@ export default class PointPresenter {
   #boardContainer = null;
   #pointComponent = null;
   #pointEditComponent = null;
+  #handleFavotiteChange = null;
+  #boardOffers = null;
+  #boardDestinations = null;
+  #point = null;
 
-  constructor(boardContainer) {
+  constructor(boardContainer, onFavoriteChange, point, boardDestinations, boardOffers) {
     this.#boardContainer = boardContainer;
+    this.#handleFavotiteChange = onFavoriteChange;
+    this.#point = point;
+    this.#boardDestinations = boardDestinations;
+    this.#boardOffers = boardOffers;
   }
 
-  init(point, boardDestinations, boardOffers) {
+  init(point) {
+    this.#point = point;
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
     this.#pointComponent = new PointView({
-      point,
-      boardDestinations,
-      boardOffers,
-      onEditClick: this.#handleEditClick
+      point: this.#point,
+      boardDestinations: this.#boardDestinations,
+      boardOffers: this.#boardOffers,
+      onEditClick: this.#handleEditClick,
+      onFavoriteClick: this.#toggleFavoriteState,
     });
 
     this.#pointEditComponent = new EditFormView({
-      point,
-      boardDestinations,
-      boardOffers,
+      point: this.#point,
+      boardDestinations: this.#boardDestinations,
+      boardOffers: this.#boardOffers,
       onFormSubmit: this.#handleFormSubmit
     });
     if (prevPointComponent === null || prevPointEditComponent === null) {
@@ -70,7 +80,12 @@ export default class PointPresenter {
     this.#replacePointToForm();
   };
 
-  #handleFormSubmit = () => {
+  #handleFormSubmit = (point) => {
+    this.#handleFavotiteChange(point);
     this.#replaceFormToPoint();
+  };
+
+  #toggleFavoriteState = () => {
+    this.#handleFavotiteChange({...this.#point, isFavorite: !this.#point.isFavorite});
   };
 }

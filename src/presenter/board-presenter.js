@@ -1,6 +1,7 @@
 import SortView from '../view/sort-view.js';
 import FilterView from '../view/filter-view.js';
 import InfoTripView from '../view/info-trip-view.js';
+import { updateItem } from '../utils.js';
 import { render } from '../framework/render.js';
 import { generateFilter } from '../mocks/filter-mock.js';
 import NoPointView from '../view/no-point-view.js';
@@ -41,8 +42,8 @@ export default class BoardPresenter {
   }
 
   #renderPoint(point, boardDestinations, boardOffers) {
-    const pointPresenter = new PointPresenter(this.#boardContainer);
-    pointPresenter.init(point, boardDestinations, boardOffers);
+    const pointPresenter = new PointPresenter(this.#boardContainer, this.#handlePointChange, point, boardDestinations, boardOffers);
+    pointPresenter.init(point);
     this.#pointsPresenter.set(point.id, pointPresenter);
   }
 
@@ -63,4 +64,9 @@ export default class BoardPresenter {
   #renderSort() {
     render(new SortView(), this.#boardContainer);
   }
+
+  #handlePointChange = (updatedPoint) => {
+    this.#boardPoints = updateItem(this.#boardPoints, updatedPoint);
+    this.#pointsPresenter.get(updatedPoint.id).init(updatedPoint);
+  };
 }
