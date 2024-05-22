@@ -13,7 +13,7 @@ export default class BoardPresenter {
   #pointsModel = null;
   #boardPoints = null;
   #filters = {};
-  #pointsPresenter = new Map();
+  #pointPresenters = new Map();
 
   constructor({ boardContainer, pointsModel }) {
     this.#boardContainer = boardContainer;
@@ -41,10 +41,21 @@ export default class BoardPresenter {
     }
   }
 
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
+
   #renderPoint(point, boardDestinations, boardOffers) {
-    const pointPresenter = new PointPresenter(this.#boardContainer, this.#handlePointChange, point, boardDestinations, boardOffers);
+    const pointPresenter = new PointPresenter(
+      this.#boardContainer,
+      this.#handlePointChange,
+      point,
+      boardDestinations,
+      boardOffers,
+      this.#handleModeChange
+    );
     pointPresenter.init(point);
-    this.#pointsPresenter.set(point.id, pointPresenter);
+    this.#pointPresenters.set(point.id, pointPresenter);
   }
 
   #renderNoPoints() {
@@ -52,8 +63,8 @@ export default class BoardPresenter {
   }
 
   #clearPointsList() {
-    this.#pointsPresenter.forEach((presenter) => presenter.destroy());
-    this.#pointsPresenter.clear();
+    this.#pointPresenters.forEach((presenter) => presenter.destroy());
+    this.#pointPresenters.clear();
   }
 
   #renderFilters() {
@@ -67,6 +78,6 @@ export default class BoardPresenter {
 
   #handlePointChange = (updatedPoint) => {
     this.#boardPoints = updateItem(this.#boardPoints, updatedPoint);
-    this.#pointsPresenter.get(updatedPoint.id).init(updatedPoint);
+    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
   };
 }

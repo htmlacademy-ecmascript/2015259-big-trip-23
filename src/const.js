@@ -26,6 +26,11 @@ const EmptyFiltersList = {
   future: 'There are no future events now',
 };
 
+const Mode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING',
+};
+
 export {
   CITIES,
   POINT_TYPES,
@@ -37,4 +42,5 @@ export {
   FULL_DATE_FORMAT,
   RENDER_POSITION,
   EmptyFiltersList,
+  Mode
 };
