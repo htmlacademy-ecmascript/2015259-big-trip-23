@@ -1,6 +1,6 @@
 import EditFormView from '../view/edit-form-view.js';
 import PointView from '../view/point-view.js';
-import { render, replace } from '../framework/render.js';
+import { render, replace, remove } from '../framework/render.js';
 
 export default class PointPresenter {
   #boardContainer = null;
@@ -12,6 +12,8 @@ export default class PointPresenter {
   }
 
   init(point, boardDestinations, boardOffers) {
+    const prevPointComponent = this.#pointComponent;
+    const prevPointEditComponent = this.#pointEditComponent;
     this.#pointComponent = new PointView({
       point,
       boardDestinations,
@@ -25,7 +27,26 @@ export default class PointPresenter {
       boardOffers,
       onFormSubmit: this.#handleFormSubmit
     });
-    render(this.#pointComponent, this.#boardContainer);
+    if (prevPointComponent === null || prevPointEditComponent === null) {
+      render(this.#pointComponent, this.#boardContainer);
+      return;
+    }
+
+    if (this.#boardContainer.contains(prevPointComponent.element)) {
+      replace(this.#pointComponent, prevPointComponent);
+    }
+
+    if (this.#boardContainer.contains(prevPointEditComponent.element)) {
+      replace(this.#pointEditComponent, prevPointEditComponent);
+    }
+
+    remove(prevPointComponent);
+    remove(prevPointEditComponent);
+  }
+
+  destroy() {
+    remove(this.#pointComponent);
+    remove(this.#pointEditComponent);
   }
 
   #escKeyDownHandler = (evt) => {
