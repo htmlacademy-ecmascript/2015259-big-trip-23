@@ -2,7 +2,7 @@ const CITIES = ['Limassol', 'Hague', 'Geneva', 'Berlin', 'Stockholm'];
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 const SORTS = ['day', 'event', 'time', 'price', 'offers'];
-const POINTS_COUNT = 5;
+const POINTS_COUNT = 3;
 
 const DATE_FORMAT = 'MMM DD';
 const TIME_FORMAT = 'HH:mm';
@@ -26,6 +26,11 @@ const EmptyFiltersList = {
   future: 'There are no future events now',
 };
 
+const Mode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING',
+};
+
 export {
   CITIES,
   POINT_TYPES,
@@ -37,4 +42,5 @@ export {
   FULL_DATE_FORMAT,
   RENDER_POSITION,
   EmptyFiltersList,
+  Mode
 };

@@ -50,25 +50,25 @@ function renderOffersTypes(offersTypes, pointOffers, id) {
 }
 
 function renderPointDestination(id, pointDest) {
+  if (!pointDest || !pointDest.description || !pointDest.pictures || pointDest.pictures.length === 0) {
+    return '';
+  }
+
   const description = pointDest.description;
   const pictures = pointDest.pictures;
 
-  if (description !== '' && pictures.length !== 0) {
-    return `
-        <section class="event__section  event__section--destination">
-          <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-          <p class="event__destination-description">${description}</p>
-          ${pictures.length !== 0 ? `
-            <div class="event__photos-container">
-              <div class="event__photos-tape">
-                ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
-              </div>
-            </div>
-          ` : ''}
-        </section>`;
-  } else {
-    return '';
-  }
+  return `
+    <section class="event__section event__section--destination">
+      <h3 class="event__section-title event__section-title--destination">Destination</h3>
+      <p class="event__destination-description">${description}</p>
+      ${pictures.length ? `
+        <div class="event__photos-container">
+          <div class="event__photos-tape">
+            ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </section>`;
 }
 
 const renderCityOptionsList = () => CITIES.map((city) => `<option value="${city}"></option>`).join('');
@@ -198,6 +198,6 @@ export default class EditFormView extends AbstractView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit();
+    this.#handleFormSubmit(this.#point);
   };
 }

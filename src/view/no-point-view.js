@@ -10,6 +10,10 @@ function createNoPointTemplate() {
 }
 
 export default class NoPointView extends AbstractView {
+  constructor() {
+    super();
+  }
+
   get template() {
     return createNoPointTemplate();
   }
