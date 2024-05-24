@@ -15,8 +15,8 @@ const RENDER_POSITION = {
 };
 const FilterType = {
   EVERYTHING: 'everything',
-  PRESENT: 'present',
   FUTURE: 'future',
+  PRESENT: 'present',
   PAST: 'past',
 };
 const EmptyFiltersList = {
@@ -26,9 +26,15 @@ const EmptyFiltersList = {
   future: 'There are no future events now',
 };
 
-const Mode = {
+const ModeType = {
   DEFAULT: 'DEFAULT',
   EDITING: 'EDITING',
+};
+
+const SortType = {
+  DAY: 'day',
+  TIME: 'time',
+  PRICE: 'price',
 };
 
 export {
@@ -42,5 +48,6 @@ export {
   FULL_DATE_FORMAT,
   RENDER_POSITION,
   EmptyFiltersList,
-  Mode
+  ModeType,
+  SortType
 };

@@ -1,5 +1,5 @@
 import { CITIES, POINT_TYPES, TIME_FORMAT, FULL_DATE_FORMAT } from '../const.js';
-import { transformDate, formatDateInForm } from '../utils.js';
+import { transformDate, formatDateInForm } from '../utils/utils.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 function renderRoutesTypes(id, offerType) {
@@ -22,12 +22,15 @@ function renderRoutesTypes(id, offerType) {
 }
 
 function renderOffersTypes(offersTypes, pointOffers, id) {
-  if (offersTypes.length !== 0) {
-    return `
-        <section class="event__section  event__section--offers">
-          <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-          <div class="event__available-offers">
-          ${offersTypes.map((offerType) => `
+  if (offersTypes.length === 0) {
+    return '';
+  }
+
+  return `
+    <section class="event__section event__section--offers">
+      <h3 class="event__section-title event__section-title--offers">Offers</h3>
+      <div class="event__available-offers">
+        ${offersTypes.map((offerType) => `
           <div class="event__offer-selector">
             <input
               class="event__offer-checkbox visually-hidden"
@@ -41,12 +44,10 @@ function renderOffersTypes(offersTypes, pointOffers, id) {
               &plus;&euro;&nbsp;
               <span class="event__offer-price">${offerType.price}</span>
             </label>
-          </div>`).join('')}
           </div>
-        </section>`;
-  } else {
-    return '';
-  }
+        `).join('')}
+      </div>
+    </section>`;
 }
 
 function renderPointDestination(id, pointDest) {
@@ -90,7 +91,7 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType) {
     </div>`;
 }
 
-function renderEventFieldGroups(id, dateFrom, dateTo, price, offerType, pointDestination) {
+function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination) {
   return `
       <div class="event__field-group  event__field-group--destination">
         <label class="event__label event__type-output" for="event-destination-${id}">
@@ -100,8 +101,8 @@ function renderEventFieldGroups(id, dateFrom, dateTo, price, offerType, pointDes
           class="event__input event__input--destination"
           id="event-destination-${id}"
           type="text"
-          name="event-destination-${id}"
-          value="${pointDestination?.name}"
+          name="event-destination"
+          value="${pointDestination?.name || ''}"
           list="destination-list-${id}"
         >
         <datalist id="destination-list-${id}">
@@ -132,13 +133,13 @@ function renderEventFieldGroups(id, dateFrom, dateTo, price, offerType, pointDes
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input event__input--price" id="event-price-${id}" type="text" name="event-price" value="${price}">
+        <input class="event__input event__input--price" id="event-price-${id}" type="text" name="event-price" value="${basePrice}">
       </div>`;
 }
 
 function createEditFormTemplate(point, destinations, offers) {
   const {
-    basePrice: price,
+    basePrice,
     dateFrom,
     dateTo,
     destination,
@@ -154,7 +155,7 @@ function createEditFormTemplate(point, destinations, offers) {
   const routesTypesWrapperMarkup = renderTypeWrapper(id, routesTypesMarkup, offerType);
   const offersTypesMarkup = renderOffersTypes(typeOffers, pointOffers, id);
   const pointDestinationMarkup = renderPointDestination(id, pointDestination);
-  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, price, offerType, pointDestination);
+  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination);
 
   return (
     `<form class="event event--edit" action="#" method="post">
