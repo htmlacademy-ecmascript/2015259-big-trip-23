@@ -1,6 +1,9 @@
 import { CITIES, POINT_TYPES, TIME_FORMAT, FULL_DATE_FORMAT } from '../const.js';
 import { transformDate, formatDateInForm } from '../utils/utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import flatpickr from 'flatpickr';
+
+import 'flatpickr/dist/flatpickr.min.css';
 
 function renderRoutesTypes(id, offerType) {
   return POINT_TYPES.map((type) => `
@@ -178,6 +181,8 @@ function createEditFormTemplate(point, destinations, offers) {
 export default class EditFormView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleFormClose = null;
+  #dateFrom = null;
+  #dateTo = null;
 
   constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm }) {
     super();
@@ -198,6 +203,7 @@ export default class EditFormView extends AbstractStatefulView {
     this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#selectOfferHandler);
     this.element.querySelector('.event__input--price')?.addEventListener('input', this.#priceInputHandler);
     this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputHandler);
+    this.#setDatepicker();
   }
 
   get template() {
@@ -208,6 +214,20 @@ export default class EditFormView extends AbstractStatefulView {
     this.updateElement(EditFormView.parsePointToState(point));
   }
 
+  removeElement() {
+    super.removeElement();
+
+    if (this.#dateFrom) {
+      this.#dateFrom.destroy();
+      this.#dateFrom = null;
+    }
+
+    if (this.#dateTo) {
+      this.#dateTo.destroy();
+      this.#dateTo = null;
+    }
+  }
+
   #formCloseHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormClose();
@@ -216,6 +236,41 @@ export default class EditFormView extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormSubmit(EditFormView.parseStateToPoint(this._state));
+  };
+
+  #setDatepicker() {
+    this.#dateFrom = flatpickr(
+      this.element.querySelector(`#event-start-time-${this.point.id}`),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.date_from,
+        onChange: this.#dateFromChangeHandler,
+        ['time_24hr']: true,
+        maxDate: this._state.dateTo,
+      },
+    );
+    this.#dateTo = flatpickr(
+      this.element.querySelector(`#event-end-time-${this.point.id}`),
+      {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        defaultDate: this._state.date_to,
+        onChange: this.#dateToChangeHandler,
+        ['time_24hr']: true
+      },
+    );
+  }
+
+  #dateFromChangeHandler = ([dateFrom, dateTo]) => {
+    this._setState({dateFrom: dateFrom});
+    this.#dateTo.set('minDate', dateFrom);
+    this.#dateFrom.set({'maxDate': dateTo});
+  };
+
+  #dateToChangeHandler = ([dateTo]) => {
+    this._setState({dateTo: dateTo});
+    this.#dateFrom.set({'maxDate': dateTo});
   };
 
   #changeTransportTypeHandler = (evt) => {
