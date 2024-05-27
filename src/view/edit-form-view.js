@@ -176,20 +176,17 @@ function createEditFormTemplate(point, destinations, offers) {
   );
 }
 export default class EditFormView extends AbstractStatefulView {
-  #destinations = null;
-  #offers = null;
   #handleFormSubmit = null;
-  #point = null;
   #handleFormClose = null;
 
   constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm }) {
     super();
-    this.#point = point;
-    this.#destinations = boardDestinations;
-    this.#offers = boardOffers;
+    this.point = point;
+    this.destinations = boardDestinations;
+    this.offers = boardOffers;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseForm;
-    this._setState(point);
+    this._setState(EditFormView.parsePointToState(point));
     this._restoreHandlers();
   }
 
@@ -197,17 +194,18 @@ export default class EditFormView extends AbstractStatefulView {
     this.element.querySelector('.event--edit')?.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#formCloseHandler);
     this.element.querySelector('.event__save-btn')?.addEventListener('click', this.#formSubmitHandler);
-    this.element.querySelector('.event__type-group').addEventListener('change', this.#changeTransportTypeHandler);
-    this.element.querySelector('.event__available-offers').addEventListener('change', this.#selectOfferHandler);
-    this.element.querySelector('.event__input--price').addEventListener('input', this.#priceInputHeandler);
+    this.element.querySelector('.event__type-group')?.addEventListener('change', this.#changeTransportTypeHandler);
+    this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#selectOfferHandler);
+    this.element.querySelector('.event__input--price')?.addEventListener('input', this.#priceInputHandler);
+    this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputHandler);
   }
 
   get template() {
-    return createEditFormTemplate(this._state, this.#destinations, this.#offers);
+    return createEditFormTemplate(this._state, this.destinations, this.offers);
   }
 
-  reset() {
-    this.updateElement({...this.#point, ...this.#offers});
+  reset(point) {
+    this.updateElement(EditFormView.parsePointToState(point));
   }
 
   #formCloseHandler = (evt) => {
@@ -217,7 +215,7 @@ export default class EditFormView extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit({ ...this._state });
+    this.#handleFormSubmit(EditFormView.parseStateToPoint(this._state));
   };
 
   #changeTransportTypeHandler = (evt) => {
@@ -225,7 +223,7 @@ export default class EditFormView extends AbstractStatefulView {
     this.updateElement({ type: evt.target.value, offers: [] });
   };
 
-  #priceInputHeandler = (evt) => {
+  #priceInputHandler = (evt) => {
     evt.preventDefault();
     this._setState({ basePrice: evt.target.value });
   };
@@ -233,11 +231,29 @@ export default class EditFormView extends AbstractStatefulView {
   #selectOfferHandler = (evt) => {
     if (evt.target.tagName === 'INPUT') {
       if (evt.target.checked) {
-        this._state.offers.push(evt.target.dataset.offerId);
+        this._setState({offers: [...this._state.offers, evt.target.dataset.offerId]});
       } else {
-        this._state.offers = this._state.offers.filter((offer) => offer !== evt.target.dataset.offerId);
+        this._setState({offers: this._state.offers.filter((offer) => offer !== evt.target.dataset.offerId)});
       }
-      this.updateElement(this._state.offers);
     }
   };
+
+  #destinationInputHandler = (evt) => {
+    if (evt.target.tagName === 'INPUT') {
+      const newDestination = this.destinations.find((dest) => dest?.name === evt.target.value);
+      if (newDestination) {
+        this.updateElement({ destination: newDestination.id });
+      }
+    }
+  };
+
+  static parsePointToState(point) {
+    return { ...point };
+  }
+
+  static parseStateToPoint(state) {
+    const point = { ...state };
+
+    return point;
+  }
 }

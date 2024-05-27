@@ -43,7 +43,7 @@ export default class PointPresenter {
       point: { ...this.#point },
       boardDestinations: this.#boardDestinations,
       boardOffers: this.#boardOffers,
-      onFormSubmit: this.#handleFormSubmit, // Обработчик отправки формы
+      onFormSubmit: this.#formSubmitHandler, // Обработчик отправки формы
       onCloseForm: this.#buttonCloseHandler //Обработчик закрытия формы
     });
     if (prevPointComponent === null || prevPointEditComponent === null) {
@@ -115,7 +115,7 @@ export default class PointPresenter {
     this.#replacePointToForm(); // Заменяем точку на форму редактирования
   };
 
-  #handleFormSubmit = (point) => {
+  #formSubmitHandler = (point) => {
     // Обработчик отправки формы
     this.#handleFavotiteChange(point); // Обрабатываем изменение избранного
     this.#replaceFormToPoint(); // Заменяем форму на точку
