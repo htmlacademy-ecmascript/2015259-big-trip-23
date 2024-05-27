@@ -43,7 +43,8 @@ export default class PointPresenter {
       point: { ...this.#point },
       boardDestinations: this.#boardDestinations,
       boardOffers: this.#boardOffers,
-      onFormSubmit: this.#handleFormSubmit // Обработчик отправки формы
+      onFormSubmit: this.#handleFormSubmit, // Обработчик отправки формы
+      onCloseForm: this.#buttonCloseHandler //Обработчик закрытия формы
     });
     if (prevPointComponent === null || prevPointEditComponent === null) {
       // Если компоненты точки или формы редактирования не существуют
@@ -75,13 +76,21 @@ export default class PointPresenter {
     // Метод для сброса отображения
     if (this.#mode !== ModeType.DEFAULT) {
       // Если режим не по умолчанию
-      this.#replaceFormToPoint(); // Заменяем форму на точку
+      this.#pointEditComponent.reset(); // Сбрасываем данные формы редактирования точки до исходного состояни
+      this.#replaceFormToPoint(); // Заменяем форму редактирования на отображение точки
     }
   }
+
+  #buttonCloseHandler = () => {
+    //Обработчик клика по кнопке закрытия
+    this.#pointEditComponent.reset(); //Сбрасываем данные формы редактирования
+    this.#replaceFormToPoint(); // Заменяем форму редактирования на отображение точки
+  };
 
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
+      this.#pointEditComponent.reset(); // Сбрасываем данные формы редактирования
       this.#replaceFormToPoint(); // Заменяем форму на точку
     }
   };
