@@ -246,7 +246,8 @@ export default class EditFormView extends AbstractStatefulView {
         enableTime: true,
         defaultDate: this._state.date_from,
         onChange: this.#dateFromChangeHandler,
-        ['time_24hr']: true
+        ['time_24hr']: true,
+        maxDate: this._state.dateTo,
       },
     );
     this.#dateTo = flatpickr(
@@ -261,12 +262,15 @@ export default class EditFormView extends AbstractStatefulView {
     );
   }
 
-  #dateFromChangeHandler = ([dateFrom]) => {
+  #dateFromChangeHandler = ([dateFrom, dateTo]) => {
     this._setState({dateFrom: dateFrom});
+    this.#dateTo.set('minDate', dateFrom);
+    this.#dateFrom.set({'maxDate': dateTo});
   };
 
   #dateToChangeHandler = ([dateTo]) => {
     this._setState({dateTo: dateTo});
+    this.#dateFrom.set({'maxDate': dateTo});
   };
 
   #changeTransportTypeHandler = (evt) => {
