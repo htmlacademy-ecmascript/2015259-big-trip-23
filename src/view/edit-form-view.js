@@ -1,6 +1,6 @@
 import { CITIES, POINT_TYPES, TIME_FORMAT, FULL_DATE_FORMAT } from '../const.js';
 import { transformDate, formatDateInForm } from '../utils/utils.js';
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
 function renderRoutesTypes(id, offerType) {
   return POINT_TYPES.map((type) => `
@@ -175,30 +175,85 @@ function createEditFormTemplate(point, destinations, offers) {
     </form>`
   );
 }
-export default class EditFormView extends AbstractView {
-  #point = null;
-  #destinations = null;
-  #offers = null;
+export default class EditFormView extends AbstractStatefulView {
   #handleFormSubmit = null;
+  #handleFormClose = null;
 
-  constructor({ point, boardDestinations, boardOffers, onFormSubmit }) {
+  constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm }) {
     super();
-    this.#point = point;
-    this.#destinations = boardDestinations;
-    this.#offers = boardOffers;
+    this.point = point;
+    this.destinations = boardDestinations;
+    this.offers = boardOffers;
     this.#handleFormSubmit = onFormSubmit;
+    this.#handleFormClose = onCloseForm;
+    this._setState(EditFormView.parsePointToState(point));
+    this._restoreHandlers();
+  }
 
+  _restoreHandlers() {
     this.element.querySelector('.event--edit')?.addEventListener('submit', this.#formSubmitHandler);
-    this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#formSubmitHandler);
+    this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#formCloseHandler);
     this.element.querySelector('.event__save-btn')?.addEventListener('click', this.#formSubmitHandler);
+    this.element.querySelector('.event__type-group')?.addEventListener('change', this.#changeTransportTypeHandler);
+    this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#selectOfferHandler);
+    this.element.querySelector('.event__input--price')?.addEventListener('input', this.#priceInputHandler);
+    this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputHandler);
   }
 
   get template() {
-    return createEditFormTemplate(this.#point, this.#destinations, this.#offers);
+    return createEditFormTemplate(this._state, this.destinations, this.offers);
   }
+
+  reset(point) {
+    this.updateElement(EditFormView.parsePointToState(point));
+  }
+
+  #formCloseHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormClose();
+  };
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit(this.#point);
+    this.#handleFormSubmit(EditFormView.parseStateToPoint(this._state));
   };
+
+  #changeTransportTypeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({ type: evt.target.value, offers: [] });
+  };
+
+  #priceInputHandler = (evt) => {
+    evt.preventDefault();
+    this._setState({ basePrice: evt.target.value });
+  };
+
+  #selectOfferHandler = (evt) => {
+    if (evt.target.tagName === 'INPUT') {
+      if (evt.target.checked) {
+        this._setState({offers: [...this._state.offers, evt.target.dataset.offerId]});
+      } else {
+        this._setState({offers: this._state.offers.filter((offer) => offer !== evt.target.dataset.offerId)});
+      }
+    }
+  };
+
+  #destinationInputHandler = (evt) => {
+    if (evt.target.tagName === 'INPUT') {
+      const newDestination = this.destinations.find((dest) => dest?.name === evt.target.value);
+      if (newDestination) {
+        this.updateElement({ destination: newDestination.id });
+      }
+    }
+  };
+
+  static parsePointToState(point) {
+    return { ...point };
+  }
+
+  static parseStateToPoint(state) {
+    const point = { ...state };
+
+    return point;
+  }
 }
