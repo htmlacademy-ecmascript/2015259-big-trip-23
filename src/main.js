@@ -1,10 +1,10 @@
-import Presenter from './presenter/board-presenter.js';
+import BoardPresenter from './presenter/board-presenter.js';
 import PointsModel from './model/point-model.js';
 
 const boardContainerElement = document.querySelector('.trip-events');
 const pointsModel = new PointsModel();
 pointsModel.initPoints();
-const boardPresenter = new Presenter({
+const boardPresenter = new BoardPresenter({
   boardContainer: boardContainerElement,
   pointsModel,
 });
