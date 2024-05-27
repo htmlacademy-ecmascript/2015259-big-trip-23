@@ -1,8 +1,7 @@
-import { DATE_FORMAT, TIME_FORMAT } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
-import { formatDateInForm } from '../utils.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import { calculateDurationOfStay, transformToDateFromFormat, transformToTimeToFormat } from '../utils/utils.js';
 
 dayjs.extend(duration);
 
@@ -22,24 +21,21 @@ function createPointTemplate(point, destinations, offers) {
   const typeOffers = offers.find((offer) => offer.type === type)?.offers || [];
   const filteredPointOffers = typeOffers.filter((offer) => pointOffers.includes(offer.id));
 
-  const dateFromFormat = formatDateInForm(dateFrom, DATE_FORMAT);
-  const timeFromFormat = formatDateInForm(dateFrom, TIME_FORMAT);
-  const timeToFormat = formatDateInForm(dateTo, TIME_FORMAT);
-  const durationOfStay = dayjs.duration(dayjs(dateTo).diff(dayjs(dateFrom)));
-  const durationOfStayFormat = `${durationOfStay.days() > 1 ? `${durationOfStay.days()}D` : ''} ${durationOfStay.hours()}H ${durationOfStay.minutes()}M`;
+  const durationOfStay = calculateDurationOfStay(dateTo, dateFrom);
+  const durationOfStayFormat = `${durationOfStay.days() > 0 ? `${durationOfStay.days()}D` : ''} ${durationOfStay.hours()}H ${durationOfStay.minutes()}M`;
 
   return `
         <div class="event">
-            <time class="event__date" datetime="${dateFromFormat}">${dateFromFormat}</time>
+            <time class="event__date" datetime="${transformToDateFromFormat(dateFrom)}">${transformToDateFromFormat(dateFrom)}</time>
             <div class="event__type">
                 <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
             </div>
             <h3 class="event__title">${type} ${pointDestination?.name}</h3>
             <div class="event__schedule">
                 <p class="event__time">
-                    <time class="event__start-time" datetime="${dateFrom}">${timeFromFormat}</time>
+                    <time class="event__start-time" datetime="${dateFrom}">${transformToTimeToFormat(dateFrom)}</time>
                     &mdash;
-                    <time class="event__end-time" datetime="${dateTo}">${timeToFormat}</time>
+                    <time class="event__end-time" datetime="${dateTo}">${transformToTimeToFormat(dateFrom)}</time>
                 </p>
                 <p class="event__duration">${durationOfStayFormat}</p>
             </div>
