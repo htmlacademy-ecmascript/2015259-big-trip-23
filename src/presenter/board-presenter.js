@@ -93,7 +93,11 @@ export default class BoardPresenter {
   // Отображение фильтров
   #renderFilters() {
     this.#filters = generateFilter(this.#pointsModel.points);
-    render(new FilterView({ filters: this.#filters, onFilterTypeChange: this.#handleFilterTypeChange }), document.querySelector('.trip-controls__filters'));
+    render(new FilterView({
+      filters: this.#filters,
+      onFilterTypeChange: this.#handleFilterTypeChange,
+      currentFilterType: FilterType.EVERYTHING,
+    }), document.querySelector('.trip-controls__filters'));
   }
 
   // Отображение компонента сортировки
