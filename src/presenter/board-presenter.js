@@ -1,49 +1,68 @@
 import SortView from '../view/sort-view.js';
-import FilterView from '../view/filter-view.js';
 import InfoTripView from '../view/info-trip-view.js';
 import NoPointView from '../view/no-point-view.js';
 import PointPresenter from './point-presenter.js';
+import FilterPresenter from './filter-presenter.js';
 import { render, remove } from '../framework/render.js';
 import { SortType, FilterType, UpdateType, UserAction } from '../const.js';
 import { sortPointsByDay, sortPointsByTime, sortPointsByPrice } from '../utils/sort.js';
-import { filterByFuture, filterByPast, filterByPresent, generateFilter } from '../utils/filter.js';
+import { filterByFuture, filterByPast, filterByPresent, filtersGenerateInfo } from '../utils/filter.js';
 
 const infoTripElement = document.querySelector('.trip-main');
 
 export default class BoardPresenter {
   #boardContainer = null; // Контейнер для отображения списка точек маршрута
   #pointsModel = null; // Модель данных о точках маршрута
-  #filters = {}; // Фильтры для точек маршрута
+  #filterModel = null; // Фильтры для точек маршрута
   #sortComponent = null; // Компонент для сортировки точек маршрута
   #pointPresenters = new Map(); // Презентеры точек маршрута
   #currentSortType = SortType.DAY; // Текущий тип сортировки
-  #currentFilterType = FilterType.EVERYTHING; // Текущий тип фильтрации
 
-  constructor({ boardContainer, pointsModel }) {
+  constructor({ boardContainer, pointsModel, filterModel }) {
     this.#boardContainer = boardContainer;
     this.#pointsModel = pointsModel;
+    this.#filterModel = filterModel;
     this.#pointsModel.addObserver(this.#handleModelEvent);
+    this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
   init() {
-    this.#renderFilters(); // Отображение фильтров
     this.#renderBoard();
+    this.#renderFilters();// Отображение фильтров
     render(new InfoTripView(), infoTripElement, 'afterbegin'); // Отображение информации о поездке
-
-
   }
 
   // Получение отсортированного списка точек маршрута
   get points() {
+    const points = this.#filterPoints(this.#pointsModel.points);
+
     switch (this.#currentSortType) {
       case SortType.TIME:
-        return [...this.#pointsModel.points].sort(sortPointsByTime);
+        return [...points].sort(sortPointsByTime);
       case SortType.PRICE:
-        return [...this.#pointsModel.points].sort(sortPointsByPrice);
+        return [...points].sort(sortPointsByPrice);
       case SortType.DAY:
-        return [...this.#pointsModel.points].sort(sortPointsByDay);
+        return [...points].sort(sortPointsByDay);
       default:
-        return [...this.#pointsModel.points].sort(sortPointsByDay);
+        return [...points].sort(sortPointsByDay);
+    }
+  }
+
+  #filterPoints(points) {
+    const filterType = this.#filterModel.filter;
+    const filteredPoints = filtersGenerateInfo[filterType](points);
+
+    switch (filterType) {
+      case FilterType.FUTURE:
+        return filterByFuture(filteredPoints);
+      case FilterType.PAST:
+        return filterByPast(filteredPoints);
+      case FilterType.PRESENT:
+        return filterByPresent(filteredPoints);
+      case FilterType.EVERYTHING:
+        return filteredPoints;
+      default:
+        return filteredPoints;
     }
   }
 
@@ -71,6 +90,17 @@ export default class BoardPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
+  #renderFilters() {
+    const siteHeaderElement = document.querySelector('.trip-controls__filters');
+    const filterPresenter = new FilterPresenter({
+      filterContainer: siteHeaderElement,
+      filterModel: this.#filterModel,
+      pointsModel: this.#pointsModel,
+    });
+
+    filterPresenter.init();
+  }
+
   // Отображение точки маршрута
   #renderPoint(point, boardDestinations, boardOffers) {
     const pointPresenter = new PointPresenter(
@@ -81,23 +111,13 @@ export default class BoardPresenter {
       boardOffers,
       this.#handleModeChange
     );
-    pointPresenter.init(point);
+    pointPresenter.init();
     this.#pointPresenters.set(point.id, pointPresenter);
   }
 
   // Отображение сообщения о отсутствии точек маршрута
   #renderNoPoints() {
     render(new NoPointView(), this.#boardContainer);
-  }
-
-  // Отображение фильтров
-  #renderFilters() {
-    this.#filters = generateFilter(this.#pointsModel.points);
-    render(new FilterView({
-      filters: this.#filters,
-      onFilterTypeChange: this.#handleFilterTypeChange,
-      currentFilterType: FilterType.EVERYTHING,
-    }), document.querySelector('.trip-controls__filters'));
   }
 
   // Отображение компонента сортировки
@@ -121,42 +141,12 @@ export default class BoardPresenter {
     this.#renderBoard(); // Повторное отображение списка точек маршрута
   };
 
-  // Обработка изменения типа фильтрации
-  #handleFilterTypeChange = (filterType) => {
-    if (this.#currentFilterType === filterType) {
-      return;
-    }
-
-    this.#filterPoints(filterType); // Фильтрация точек маршрута
-    this.#clearBoard({ resetRenderedTaskCount: true }); // Очистка списка точек маршрута
-    this.#renderBoard(); // Повторное отображение списка точек маршрута
-  };
-
-  // Фильтрация точек маршрута
-  #filterPoints(filterType) {
-    switch (filterType) {
-      case FilterType.FUTURE:
-        this.#pointsModel.points = filterByFuture(this.#pointsModel.points); // Фильтрация по будущим точкам маршрута
-        break;
-      case FilterType.PAST:
-        this.#pointsModel.points = filterByPast(this.#pointsModel.points); // Фильтрация по прошлым точкам маршрута
-        break;
-      case FilterType.PRESENT:
-        this.#pointsModel.points = filterByPresent(this.#pointsModel.points); // Фильтрация по текущим точкам маршрута
-        break;
-      case FilterType.EVERYTHING:
-        // Нет необходимости фильтровать, просто отображаем все точки маршрута
-        break;
-      default:
-      // По умолчанию отображаем все точки маршрута
-    }
-    this.#currentFilterType = filterType;
-  }
-
   #clearBoard({ resetSortType = false } = {}) {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
-    remove(this.#sortComponent);
+    if (this.#sortComponent) {
+      remove(this.#sortComponent);
+    }
 
     if (resetSortType) {
       this.#currentSortType = SortType.DAY;
@@ -183,7 +173,9 @@ export default class BoardPresenter {
     switch (updateType) {
       case UpdateType.PATCH:
         //обновление части списка (например, когда поменялось описание)
-        this.#pointPresenters.get(data.id).init(data);
+        if (this.#pointPresenters.has(data.id)) {
+          this.#pointPresenters.get(data.id).init(data);
+        }
         break;
       case UpdateType.MINOR:
         //обновление списока (например, когда задача ушла в архив)
@@ -193,6 +185,7 @@ export default class BoardPresenter {
       case UpdateType.MAJOR:
         //обновление всей доски (например, при переключении фильтра)
         this.#clearBoard({ resetSortType: true });
+        this.#currentSortType = SortType.DAY;
         this.#renderBoard();
         break;
     }

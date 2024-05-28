@@ -44,5 +44,6 @@ export {
   generateFilter,
   filterByFuture,
   filterByPast,
-  filterByPresent
+  filterByPresent,
+  filtersGenerateInfo
 };
