@@ -4,7 +4,7 @@ import { transformDate } from '../utils/utils.js';
 
 const sortsNames = Object.values(SORTS);
 
-function renderSortItem(sort, index) {
+function renderSortItem(sort, index, currentSortType) {
   return `
       <div class="trip-sort__item trip-sort__item--${sort}">
           <input
@@ -14,7 +14,7 @@ function renderSortItem(sort, index) {
               name="trip-sort"
               value="sort-${sort}"
               ${sort === 'offers' || sort === 'event' ? 'disabled' : ''}
-              ${index === 0 ? 'checked' : ''}
+              ${currentSortType === sortsNames[index] ? 'checked' : ''}
               data-sort-type="${sortsNames[index]}"
           >
           <label class="trip-sort__btn" for="sort-${sort}">${transformDate(sort)}</label>
@@ -22,33 +22,36 @@ function renderSortItem(sort, index) {
   `;
 }
 
-function createSortTemplate() {
-  const sortsMarkup = SORTS.map(renderSortItem).join('');
+function createSortTemplate(currentSortType) {
+  const sortsMarkup = SORTS.map((sort, index) => renderSortItem(sort, index, currentSortType)).join('');
   return `
-    <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
+    <form class="trip-events__trip-sort trip-sort" action="#" method="get">
       ${sortsMarkup}
     </form>`;
 }
+
 export default class SortView extends AbstractView {
   #handleSortTypeChange = null;
+  #currentSortType = null;
 
-  constructor({ onSortTypeChange }) {
+  constructor({ onSortTypeChange, currentSortType }) {
     super();
 
     this.#handleSortTypeChange = onSortTypeChange;
 
-    this.element.addEventListener('change', this.#sortTypeChangeHandler);
+    this.element.addEventListener('change', this.#sortTypeChangeHandler.bind(this));
+    this.#currentSortType = currentSortType;
   }
 
   get template() {
-    return createSortTemplate();
+    return createSortTemplate(this.#currentSortType);
   }
 
-  #sortTypeChangeHandler = (evt) => {
+  #sortTypeChangeHandler(evt) {
     if (evt.target.tagName !== 'INPUT' || evt.target.dataset.sortType === 'offers' || evt.target.dataset.sortType === 'event') {
       return;
     }
 
     this.#handleSortTypeChange(evt.target.dataset.sortType);
-  };
+  }
 }

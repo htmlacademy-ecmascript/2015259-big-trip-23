@@ -3,7 +3,7 @@ import FilterView from '../view/filter-view.js';
 import InfoTripView from '../view/info-trip-view.js';
 import NoPointView from '../view/no-point-view.js';
 import PointPresenter from './point-presenter.js';
-import { render } from '../framework/render.js';
+import { render, remove } from '../framework/render.js';
 import { SortType, FilterType, UpdateType, UserAction } from '../const.js';
 import { sortPointsByDay, sortPointsByTime, sortPointsByPrice } from '../utils/sort.js';
 import { filterByFuture, filterByPast, filterByPresent, generateFilter } from '../utils/filter.js';
@@ -27,16 +27,10 @@ export default class BoardPresenter {
 
   init() {
     this.#renderFilters(); // Отображение фильтров
+    this.#renderBoard();
     render(new InfoTripView(), infoTripElement, 'afterbegin'); // Отображение информации о поездке
 
-    // Если нет точек маршрута, отображается сообщение о их отсутствии
-    if (this.#pointsModel.points.length === 0) {
-      this.#renderNoPoints();
-      return;
-    }
 
-    this.#renderSort(); // Отображение компонента сортировки
-    this.#renderPointList(); // Отображение списка точек маршрута
   }
 
   // Получение отсортированного списка точек маршрута
@@ -54,10 +48,17 @@ export default class BoardPresenter {
   }
 
   // Отображение списка точек маршрута
-  #renderPointList() {
+  #renderBoard() {
     const boardDestinations = this.#pointsModel.destinations; // Получение списка пунктов назначения
     const boardOffers = this.#pointsModel.offers; // Получение списка дополнительных опций
     const points = this.points;
+
+    if (this.#pointsModel.points.length === 0) {
+      this.#renderNoPoints();
+      return;
+    }
+
+    this.#renderSort();
 
     // Для каждой точки маршрута отображается соответствующий компонент
     points.forEach((point) => {
@@ -98,6 +99,7 @@ export default class BoardPresenter {
   // Отображение компонента сортировки
   #renderSort() {
     this.#sortComponent = new SortView({
+      currentSortType: this.#currentSortType,
       onSortTypeChange: this.#handleSortTypeChange
     });
 
@@ -110,9 +112,9 @@ export default class BoardPresenter {
       return;
     }
 
-    this.currentSortType = sortType; // Сортировка точек маршрута
-    this.#clearPointsList(); // Очистка списка точек маршрута
-    this.#renderPointList(); // Повторное отображение списка точек маршрута
+    this.#currentSortType = sortType; // Сортировка точек маршрута
+    this.#clearBoard({ resetRenderedTaskCount: true }); // Очистка списка точек маршрута
+    this.#renderBoard(); // Повторное отображение списка точек маршрута
   };
 
   // Обработка изменения типа фильтрации
@@ -122,48 +124,52 @@ export default class BoardPresenter {
     }
 
     this.#filterPoints(filterType); // Фильтрация точек маршрута
-    this.#clearPointsList(); // Очистка списка точек маршрута
-    this.#renderPointList(); // Повторное отображение списка точек маршрута
+    this.#clearBoard({ resetRenderedTaskCount: true }); // Очистка списка точек маршрута
+    this.#renderBoard(); // Повторное отображение списка точек маршрута
   };
 
   // Фильтрация точек маршрута
   #filterPoints(filterType) {
     switch (filterType) {
       case FilterType.FUTURE:
-        [...this.#pointsModel.points] = filterByFuture(this.#pointsModel.points); // Фильтрация по будущим точкам маршрута
+        this.#pointsModel.points = filterByFuture(this.#pointsModel.points); // Фильтрация по будущим точкам маршрута
         break;
       case FilterType.PAST:
-        [...this.#pointsModel.points] = filterByPast(this.#pointsModel.points); // Фильтрация по прошлым точкам маршрута
+        this.#pointsModel.points = filterByPast(this.#pointsModel.points); // Фильтрация по прошлым точкам маршрута
         break;
       case FilterType.PRESENT:
-        [...this.#pointsModel.points] = filterByPresent(this.#pointsModel.points); // Фильтрация по текущим точкам маршрута
+        this.#pointsModel.points = filterByPresent(this.#pointsModel.points); // Фильтрация по текущим точкам маршрута
         break;
       case FilterType.EVERYTHING:
-        [...this.#pointsModel.points] = this.#pointsModel.points; // Отображение всех точек маршрута
+        // Нет необходимости фильтровать, просто отображаем все точки маршрута
         break;
       default:
-        [...this.#pointsModel.points] = this.#pointsModel.points;
+      // По умолчанию отображаем все точки маршрута
     }
     this.#currentFilterType = filterType;
   }
 
-  // Очистка списка точек маршрута
-  #clearPointsList() {
+  #clearBoard({ resetSortType = false } = {}) {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
+    remove(this.#sortComponent);
+
+    if (resetSortType) {
+      this.#currentSortType = SortType.DAY;
+    }
   }
 
   // Обработка пользовательских действий
   #handleViewAction = (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this.#pointsModel.updateTask(updateType, update); // Обновление данных точки маршрута
+        this.#pointsModel.updatePoint(updateType, update); // Обновление данных точки маршрута
         break;
       case UserAction.ADD_POINT:
-        this.#pointsModel.addTask(updateType, update); // Добавление новой точки маршрута
+        this.#pointsModel.addPoint(updateType, update); // Добавление новой точки маршрута
         break;
       case UserAction.DELETE_POINT:
-        this.#pointsModel.deleteTask(updateType, update); // Удаление точки маршрута
+        this.#pointsModel.deletePoint(updateType, update); // Удаление точки маршрута
         break;
     }
   };
@@ -177,9 +183,13 @@ export default class BoardPresenter {
         break;
       case UpdateType.MINOR:
         //обновление списока (например, когда задача ушла в архив)
+        this.#clearBoard();
+        this.#renderBoard();
         break;
       case UpdateType.MAJOR:
         //обновление всей доски (например, при переключении фильтра)
+        this.#clearBoard({ resetSortType: true });
+        this.#renderBoard();
         break;
     }
   };

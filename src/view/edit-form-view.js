@@ -183,14 +183,16 @@ export default class EditFormView extends AbstractStatefulView {
   #handleFormClose = null;
   #dateFrom = null;
   #dateTo = null;
+  #handleDeleteClick = null;
 
-  constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm }) {
+  constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm, onDeleteClick }) {
     super();
     this.point = point;
     this.destinations = boardDestinations;
     this.offers = boardOffers;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseForm;
+    this.#handleDeleteClick = onDeleteClick;
     this._setState(EditFormView.parsePointToState(point));
     this._restoreHandlers();
   }
@@ -203,6 +205,7 @@ export default class EditFormView extends AbstractStatefulView {
     this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#selectOfferHandler);
     this.element.querySelector('.event__input--price')?.addEventListener('input', this.#priceInputHandler);
     this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputHandler);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formDeleteClickHandler);
     this.#setDatepicker();
   }
 
@@ -233,9 +236,14 @@ export default class EditFormView extends AbstractStatefulView {
     this.#handleFormClose();
   };
 
+  #formDeleteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick(EditFormView.parseStateToPoint(this._state));
+  };
+
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit(EditFormView.parseStateToPoint(this._state));
+    this.#handleFormSubmit({...this._state});
   };
 
   #setDatepicker() {
@@ -263,14 +271,14 @@ export default class EditFormView extends AbstractStatefulView {
   }
 
   #dateFromChangeHandler = ([dateFrom, dateTo]) => {
-    this._setState({dateFrom: dateFrom});
+    this._setState({ dateFrom: dateFrom });
     this.#dateTo.set('minDate', dateFrom);
-    this.#dateFrom.set({'maxDate': dateTo});
+    this.#dateFrom.set({ 'maxDate': dateTo });
   };
 
   #dateToChangeHandler = ([dateTo]) => {
-    this._setState({dateTo: dateTo});
-    this.#dateFrom.set({'maxDate': dateTo});
+    this._setState({ dateTo: dateTo });
+    this.#dateFrom.set({ 'maxDate': dateTo });
   };
 
   #changeTransportTypeHandler = (evt) => {
@@ -286,9 +294,9 @@ export default class EditFormView extends AbstractStatefulView {
   #selectOfferHandler = (evt) => {
     if (evt.target.tagName === 'INPUT') {
       if (evt.target.checked) {
-        this._setState({offers: [...this._state.offers, evt.target.dataset.offerId]});
+        this._setState({ offers: [...this._state.offers, evt.target.dataset.offerId] });
       } else {
-        this._setState({offers: this._state.offers.filter((offer) => offer !== evt.target.dataset.offerId)});
+        this._setState({ offers: this._state.offers.filter((offer) => offer !== evt.target.dataset.offerId) });
       }
     }
   };

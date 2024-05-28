@@ -3,22 +3,22 @@ import PointView from '../view/point-view.js';
 import { render, replace, remove } from '../framework/render.js';
 import { ModeType } from '../const.js';
 import { UserAction, UpdateType } from '../const.js';
-
+import { isDatesSame } from '../utils/utils.js';
 export default class PointPresenter {
   #boardContainer = null; // Контейнер для отображения точки
   #pointComponent = null; // Компонент точки
   #pointEditComponent = null; // Компонент формы редактирования точки
-  #handleFavotiteChange = null; // Функция для обработки изменения избранного
+  #handleDataChange = null;
   #boardOffers = null; // Предложения на доске
   #boardDestinations = null; // Места на доске
   #point = null; // Текущая точка
   #handleModeChange = null; // Функция для обработки изменения режима
   #mode = ModeType.DEFAULT; // Режим по умолчанию
 
-  constructor(boardContainer, onFavoriteChange, point, boardDestinations, boardOffers, onModeChange) {
+  constructor(boardContainer, onDataChange, point, boardDestinations, boardOffers, onModeChange) {
     // Конструктор принимает контейнер, функцию для обработки избранного, точку, места и предложения на доске, а также функцию для обработки изменения режима
     this.#boardContainer = boardContainer;
-    this.#handleFavotiteChange = onFavoriteChange;
+    this.#handleDataChange = onDataChange;
     this.#point = point;
     this.#boardDestinations = boardDestinations;
     this.#boardOffers = boardOffers;
@@ -37,6 +37,7 @@ export default class PointPresenter {
       boardOffers: this.#boardOffers,
       onEditClick: this.#editClickHandler, // Обработчик клика по кнопке редактирования
       onFavoriteClick: this.#toggleFavoriteStateHandler, // Обработчик клика по кнопке избранного
+      onDeleteClick: this.#handleDeleteClick,
     });
 
     this.#pointEditComponent = new EditFormView({
@@ -116,17 +117,29 @@ export default class PointPresenter {
     this.#replacePointToForm(); // Заменяем точку на форму редактирования
   };
 
-  #formSubmitHandler = (point) => {
+  #formSubmitHandler = (update) => {
     // Обработчик отправки формы
-    this.#handleFavotiteChange(
+    const isMinorUpdate =
+      !isDatesSame(this.#point.dateFrom, update.dateFrom) ||
+      !isDatesSame(this.#point.dateTo, update.dateTo);
+
+    this.#handleDataChange(
       UserAction.UPDATE_POINT, // Вызываем действие пользователя для обновления точки
-      UpdateType.MINOR, // Указываем тип обновления как минорный
-      point, // Передаем точку данных
+      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH, // Указываем тип обновления как минорный
+      update, // Передаем точку данных
+    );
+  };
+
+  #handleDeleteClick = (task) => {
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      task,
     );
   };
 
   #toggleFavoriteStateHandler = () => {
     // Обработчик переключения состояния избранного
-    this.#handleFavotiteChange({ ...this.#point, isFavorite: !this.#point.isFavorite }); // Обрабатываем изменение избранного
+    this.#handleDataChange(UserAction.UPDATE_POINT, UpdateType.PATCH, { ...this.#point, isFavorite: !this.#point.isFavorite }); // Обрабатываем изменение избранного
   };
 }
