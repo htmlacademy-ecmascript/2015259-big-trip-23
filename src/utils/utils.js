@@ -9,7 +9,6 @@ const getRandomArrayElement = (arr) => {
 
 const transformDate = (str) => str[0]?.toUpperCase() + str?.slice(1);
 const formatDateInForm = (date, format) => date ? dayjs(date).format(format) : '';
-const updateItem = (items, update) => items.map((item) => item.id === update.id ? update : item);
 
 const transformToDateFromFormat = (dateFrom) => formatDateInForm(dateFrom, DATE_FORMAT);
 const transformToTimeFromFormat = (dateFrom) => formatDateInForm(dateFrom, TIME_FORMAT);
@@ -23,6 +22,5 @@ export {
   transformToDateFromFormat,
   transformToTimeFromFormat,
   transformToTimeToFormat,
-  calculateDurationOfStay,
-  updateItem,
+  calculateDurationOfStay
 };

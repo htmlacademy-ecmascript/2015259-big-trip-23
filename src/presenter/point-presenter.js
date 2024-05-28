@@ -2,6 +2,7 @@ import EditFormView from '../view/edit-form-view.js';
 import PointView from '../view/point-view.js';
 import { render, replace, remove } from '../framework/render.js';
 import { ModeType } from '../const.js';
+import { UserAction, UpdateType } from '../const.js';
 
 export default class PointPresenter {
   #boardContainer = null; // Контейнер для отображения точки
@@ -117,8 +118,11 @@ export default class PointPresenter {
 
   #formSubmitHandler = (point) => {
     // Обработчик отправки формы
-    this.#handleFavotiteChange(point); // Обрабатываем изменение избранного
-    this.#replaceFormToPoint(); // Заменяем форму на точку
+    this.#handleFavotiteChange(
+      UserAction.UPDATE_POINT, // Вызываем действие пользователя для обновления точки
+      UpdateType.MINOR, // Указываем тип обновления как минорный
+      point, // Передаем точку данных
+    );
   };
 
   #toggleFavoriteStateHandler = () => {

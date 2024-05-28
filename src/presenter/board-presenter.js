@@ -3,9 +3,8 @@ import FilterView from '../view/filter-view.js';
 import InfoTripView from '../view/info-trip-view.js';
 import NoPointView from '../view/no-point-view.js';
 import PointPresenter from './point-presenter.js';
-import { updateItem } from '../utils/utils.js';
 import { render } from '../framework/render.js';
-import { SortType, FilterType } from '../const.js';
+import { SortType, FilterType, UpdateType, UserAction } from '../const.js';
 import { sortPointsByDay, sortPointsByTime, sortPointsByPrice } from '../utils/sort.js';
 import { filterByFuture, filterByPast, filterByPresent, generateFilter } from '../utils/filter.js';
 
@@ -15,16 +14,15 @@ export default class BoardPresenter {
   #boardContainer = null; // Контейнер для отображения списка точек маршрута
   #pointsModel = null; // Модель данных о точках маршрута
   #filters = {}; // Фильтры для точек маршрута
-  #boardPoints = []; // Отсортированные точки маршрута для отображения
   #sortComponent = null; // Компонент для сортировки точек маршрута
   #pointPresenters = new Map(); // Презентеры точек маршрута
   #currentSortType = SortType.DAY; // Текущий тип сортировки
   #currentFilterType = FilterType.EVERYTHING; // Текущий тип фильтрации
-  #sourcedBoardPoints = []; // Исходные точки маршрута
 
   constructor({ boardContainer, pointsModel }) {
     this.#boardContainer = boardContainer;
     this.#pointsModel = pointsModel;
+    this.#pointsModel.addObserver(this.#handleModelEvent);
   }
 
   init() {
@@ -37,21 +35,32 @@ export default class BoardPresenter {
       return;
     }
 
-    // Сортировка и отображение точек маршрута
-    this.#boardPoints = [...this.#pointsModel.points].sort(sortPointsByDay);
-    this.#sourcedBoardPoints = [...this.#pointsModel.points];
-
     this.#renderSort(); // Отображение компонента сортировки
     this.#renderPointList(); // Отображение списка точек маршрута
   }
 
+  // Получение отсортированного списка точек маршрута
+  get points() {
+    switch (this.#currentSortType) {
+      case SortType.TIME:
+        return [...this.#pointsModel.points].sort(sortPointsByTime);
+      case SortType.PRICE:
+        return [...this.#pointsModel.points].sort(sortPointsByPrice);
+      case SortType.DAY:
+        return [...this.#pointsModel.points].sort(sortPointsByDay);
+      default:
+        return [...this.#pointsModel.points].sort(sortPointsByDay);
+    }
+  }
+
   // Отображение списка точек маршрута
   #renderPointList() {
-    const boardDestinations = this.#pointsModel.getDestinations(); // Получение списка пунктов назначения
-    const boardOffers = this.#pointsModel.getOffers(); // Получение списка дополнительных опций
+    const boardDestinations = this.#pointsModel.destinations; // Получение списка пунктов назначения
+    const boardOffers = this.#pointsModel.offers; // Получение списка дополнительных опций
+    const points = this.points;
 
     // Для каждой точки маршрута отображается соответствующий компонент
-    this.#boardPoints.forEach((point) => {
+    points.forEach((point) => {
       this.#renderPoint(point, boardDestinations, boardOffers);
     });
   }
@@ -65,7 +74,7 @@ export default class BoardPresenter {
   #renderPoint(point, boardDestinations, boardOffers) {
     const pointPresenter = new PointPresenter(
       this.#boardContainer,
-      this.#handlePointChange,
+      this.#handleViewAction,
       point,
       boardDestinations,
       boardOffers,
@@ -101,28 +110,10 @@ export default class BoardPresenter {
       return;
     }
 
-    this.#sortPoints(sortType); // Сортировка точек маршрута
+    this.currentSortType = sortType; // Сортировка точек маршрута
     this.#clearPointsList(); // Очистка списка точек маршрута
     this.#renderPointList(); // Повторное отображение списка точек маршрута
   };
-
-  // Сортировка точек маршрута
-  #sortPoints(sortType) {
-    switch (sortType) {
-      case SortType.TIME:
-        this.#boardPoints.sort(sortPointsByTime); // Сортировка по времени
-        break;
-      case SortType.PRICE:
-        this.#boardPoints.sort(sortPointsByPrice); // Сортировка по цене
-        break;
-      case SortType.DAY:
-        this.#boardPoints.sort(sortPointsByDay); // Сортировка по дате
-        break;
-      default:
-        this.#boardPoints.sort(sortPointsByDay);
-    }
-    this.#currentSortType = sortType;
-  }
 
   // Обработка изменения типа фильтрации
   #handleFilterTypeChange = (filterType) => {
@@ -139,19 +130,19 @@ export default class BoardPresenter {
   #filterPoints(filterType) {
     switch (filterType) {
       case FilterType.FUTURE:
-        this.#boardPoints = filterByFuture(this.#sourcedBoardPoints); // Фильтрация по будущим точкам маршрута
+        [...this.#pointsModel.points] = filterByFuture(this.#pointsModel.points); // Фильтрация по будущим точкам маршрута
         break;
       case FilterType.PAST:
-        this.#boardPoints = filterByPast(this.#sourcedBoardPoints); // Фильтрация по прошлым точкам маршрута
+        [...this.#pointsModel.points] = filterByPast(this.#pointsModel.points); // Фильтрация по прошлым точкам маршрута
         break;
       case FilterType.PRESENT:
-        this.#boardPoints = filterByPresent(this.#sourcedBoardPoints); // Фильтрация по текущим точкам маршрута
+        [...this.#pointsModel.points] = filterByPresent(this.#pointsModel.points); // Фильтрация по текущим точкам маршрута
         break;
       case FilterType.EVERYTHING:
-        this.#boardPoints = this.#sourcedBoardPoints; // Отображение всех точек маршрута
+        [...this.#pointsModel.points] = this.#pointsModel.points; // Отображение всех точек маршрута
         break;
       default:
-        this.#boardPoints = this.#sourcedBoardPoints;
+        [...this.#pointsModel.points] = this.#pointsModel.points;
     }
     this.#currentFilterType = filterType;
   }
@@ -162,14 +153,34 @@ export default class BoardPresenter {
     this.#pointPresenters.clear();
   }
 
-  // Обработка изменения данных о точке маршрута
-  #handlePointChange = (updatedPoint) => {
-    this.#boardPoints = updateItem(this.#boardPoints, updatedPoint); // Обновление списка точек маршрута
-    this.#sourcedBoardPoints = updateItem(this.#sourcedBoardPoints, updatedPoint); // Обновление исходных точек маршрута
+  // Обработка пользовательских действий
+  #handleViewAction = (actionType, updateType, update) => {
+    switch (actionType) {
+      case UserAction.UPDATE_POINT:
+        this.#pointsModel.updateTask(updateType, update); // Обновление данных точки маршрута
+        break;
+      case UserAction.ADD_POINT:
+        this.#pointsModel.addTask(updateType, update); // Добавление новой точки маршрута
+        break;
+      case UserAction.DELETE_POINT:
+        this.#pointsModel.deleteTask(updateType, update); // Удаление точки маршрута
+        break;
+    }
+  };
 
-    const pointPresenter = this.#pointPresenters.get(updatedPoint.id);
-    if (pointPresenter) {
-      pointPresenter.init(updatedPoint); // Обновление представления точки маршрута
+  // Обработка событий модели
+  #handleModelEvent = (updateType, data) => {
+    switch (updateType) {
+      case UpdateType.PATCH:
+        //обновление части списка (например, когда поменялось описание)
+        this.#pointPresenters.get(data.id).init(data);
+        break;
+      case UpdateType.MINOR:
+        //обновление списока (например, когда задача ушла в архив)
+        break;
+      case UpdateType.MAJOR:
+        //обновление всей доски (например, при переключении фильтра)
+        break;
     }
   };
 }
