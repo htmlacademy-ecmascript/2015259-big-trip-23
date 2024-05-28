@@ -7,7 +7,7 @@ const POINTS_COUNT = 3;
 const DATE_FORMAT = 'MMM DD';
 const TIME_FORMAT = 'HH:mm';
 const FULL_DATE_FORMAT = 'DD/MM/YY';
-const RENDER_POSITION = {
+const RenderPosition = {
   BEFOREBEGIN: 'beforebegin',
   AFTERBEGIN: 'afterbegin',
   BEFOREEND: 'beforeend',
@@ -37,6 +37,17 @@ const SortType = {
   PRICE: 'price',
 };
 
+const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
 export {
   CITIES,
   POINT_TYPES,
@@ -46,8 +57,10 @@ export {
   SORTS,
   TIME_FORMAT,
   FULL_DATE_FORMAT,
-  RENDER_POSITION,
+  RenderPosition,
   EmptyFiltersList,
   ModeType,
-  SortType
+  SortType,
+  UserAction,
+  UpdateType
 };
