@@ -178,7 +178,7 @@ function createEditFormTemplate(point, destinations, offers) {
     </form>`
   );
 }
-export default class EditFormView extends AbstractStatefulView {
+export default class FormView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleFormClose = null;
   #dateFrom = null;
@@ -193,7 +193,7 @@ export default class EditFormView extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseForm;
     this.#handleDeleteClick = onDeleteClick;
-    this._setState(EditFormView.parsePointToState(point));
+    this._setState(FormView.parsePointToState(point));
     this._restoreHandlers();
   }
 
@@ -214,7 +214,7 @@ export default class EditFormView extends AbstractStatefulView {
   }
 
   reset(point) {
-    this.updateElement(EditFormView.parsePointToState(point));
+    this.updateElement(FormView.parsePointToState(point));
   }
 
   removeElement() {
@@ -238,7 +238,7 @@ export default class EditFormView extends AbstractStatefulView {
 
   #formDeleteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleDeleteClick(EditFormView.parseStateToPoint(this._state));
+    this.#handleDeleteClick(FormView.parseStateToPoint(this._state));
   };
 
   #formSubmitHandler = (evt) => {
@@ -288,7 +288,7 @@ export default class EditFormView extends AbstractStatefulView {
 
   #priceInputHandler = (evt) => {
     evt.preventDefault();
-    this._setState({ basePrice: evt.target.value });
+    this.updateElement({ basePrice: evt.target.value });
   };
 
   #selectOfferHandler = (evt) => {

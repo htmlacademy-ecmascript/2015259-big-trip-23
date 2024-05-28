@@ -17,6 +17,7 @@ export default class BoardPresenter {
   #sortComponent = null; // Компонент для сортировки точек маршрута
   #pointPresenters = new Map(); // Презентеры точек маршрута
   #currentSortType = SortType.DAY; // Текущий тип сортировки
+  #noPointComponent = null;
 
   constructor({ boardContainer, pointsModel, filterModel }) {
     this.#boardContainer = boardContainer;
@@ -72,7 +73,7 @@ export default class BoardPresenter {
     const boardOffers = this.#pointsModel.offers; // Получение списка дополнительных опций
     const points = this.points;
 
-    if (this.#pointsModel.points.length === 0) {
+    if (filtersGenerateInfo[this.#filterModel.filter](points).length === 0) {
       this.#renderNoPoints();
       return;
     }
@@ -117,7 +118,8 @@ export default class BoardPresenter {
 
   // Отображение сообщения о отсутствии точек маршрута
   #renderNoPoints() {
-    render(new NoPointView(), this.#boardContainer);
+    this.#noPointComponent = new NoPointView(this.#filterModel.filter);
+    render(this.#noPointComponent, this.#boardContainer);
   }
 
   // Отображение компонента сортировки

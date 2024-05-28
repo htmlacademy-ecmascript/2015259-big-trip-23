@@ -1,4 +1,4 @@
-import EditFormView from '../view/edit-form-view.js';
+import FormView from '../view/form-view.js';
 import PointView from '../view/point-view.js';
 import { render, replace, remove } from '../framework/render.js';
 import { ModeType } from '../const.js';
@@ -40,7 +40,7 @@ export default class PointPresenter {
       onDeleteClick: this.#handleDeleteClick,
     });
 
-    this.#pointEditComponent = new EditFormView({
+    this.#pointEditComponent = new FormView({
       // Создаем новый компонент формы редактирования точки
       point: { ...this.#point },
       boardDestinations: this.#boardDestinations,
@@ -132,11 +132,11 @@ export default class PointPresenter {
     );
   };
 
-  #handleDeleteClick = (task) => {
+  #handleDeleteClick = (point) => {
     this.#handleDataChange(
       UserAction.DELETE_POINT,
       UpdateType.MINOR,
-      task,
+      point,
     );
   };
 
