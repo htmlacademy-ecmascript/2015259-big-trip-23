@@ -7,6 +7,15 @@ const POINTS_COUNT = 3;
 const DATE_FORMAT = 'MMM DD';
 const TIME_FORMAT = 'HH:mm';
 const FULL_DATE_FORMAT = 'DD/MM/YY';
+const NEW_POINT = {
+  basePrice: 0,
+  dateFrom: '',
+  dateTo: '',
+  destination: '',
+  isFavorite: false,
+  offers: [],
+  type:  POINT_TYPES[3]
+};
 const RenderPosition = {
   BEFOREBEGIN: 'beforebegin',
   AFTERBEGIN: 'afterbegin',
@@ -29,6 +38,7 @@ const EmptyFiltersList = {
 const ModeType = {
   DEFAULT: 'DEFAULT',
   EDITING: 'EDITING',
+  CREATE_NEW: 'CREATE_NEW',
 };
 
 const SortType = {
@@ -62,5 +72,6 @@ export {
   ModeType,
   SortType,
   UserAction,
-  UpdateType
+  UpdateType,
+  NEW_POINT
 };

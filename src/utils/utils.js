@@ -9,9 +9,7 @@ const getRandomArrayElement = (arr) => {
 
 const transformDate = (str) => str[0]?.toUpperCase() + str?.slice(1);
 const formatDateInForm = (date, format) => date ? dayjs(date).format(format) : '';
-function isDatesSame(dateA, dateB) {
-  return (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, 'D');
-}
+const isDatesSame = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, 'D');
 
 const transformToDateFromFormat = (dateFrom) => formatDateInForm(dateFrom, DATE_FORMAT);
 const transformToTimeFromFormat = (dateFrom) => formatDateInForm(dateFrom, TIME_FORMAT);

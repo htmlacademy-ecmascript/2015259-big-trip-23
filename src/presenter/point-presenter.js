@@ -13,7 +13,7 @@ export default class PointPresenter {
   #boardDestinations = null; // Места на доске
   #point = null; // Текущая точка
   #handleModeChange = null; // Функция для обработки изменения режима
-  #mode = ModeType.DEFAULT; // Режим по умолчанию
+  #modeType = ModeType.DEFAULT; // Режим по умолчанию
 
   constructor(boardContainer, onDataChange, point, boardDestinations, boardOffers, onModeChange) {
     // Конструктор принимает контейнер, функцию для обработки избранного, точку, места и предложения на доске, а также функцию для обработки изменения режима
@@ -37,7 +37,7 @@ export default class PointPresenter {
       boardOffers: this.#boardOffers,
       onEditClick: this.#editClickHandler, // Обработчик клика по кнопке редактирования
       onFavoriteClick: this.#toggleFavoriteStateHandler, // Обработчик клика по кнопке избранного
-      onDeleteClick: this.#handleDeleteClick,
+      mode: this.#modeType
     });
 
     this.#pointEditComponent = new FormView({
@@ -46,7 +46,9 @@ export default class PointPresenter {
       boardDestinations: this.#boardDestinations,
       boardOffers: this.#boardOffers,
       onFormSubmit: this.#formSubmitHandler, // Обработчик отправки формы
-      onCloseForm: this.#buttonCloseHandler //Обработчик закрытия формы
+      onCloseForm: this.#buttonCloseHandler, //Обработчик закрытия формы
+      onDeleteClick: this.#handleDeleteClick,
+      mode: this.#modeType
     });
     if (prevPointComponent === null || prevPointEditComponent === null) {
       // Если компоненты точки или формы редактирования не существуют
@@ -54,12 +56,12 @@ export default class PointPresenter {
       return;
     }
 
-    if (this.#mode === ModeType.DEFAULT) {
+    if (this.#modeType === ModeType.DEFAULT) {
       // Если режим по умолчанию
       replace(this.#pointComponent, prevPointComponent); // Заменяем компонент точки на новый
     }
 
-    if (this.#mode === ModeType.EDITING) {
+    if (this.#modeType === ModeType.EDITING) {
       // Если режим редактирования
       replace(this.#pointEditComponent, prevPointEditComponent); // Заменяем компонент формы редактирования на новый
     }
@@ -76,7 +78,7 @@ export default class PointPresenter {
 
   resetView() {
     // Метод для сброса отображения
-    if (this.#mode !== ModeType.DEFAULT) {
+    if (this.#modeType !== ModeType.DEFAULT) {
       // Если режим не по умолчанию
       this.#pointEditComponent.reset(); // Сбрасываем данные формы редактирования точки до исходного состояни
       this.#replaceFormToPoint(); // Заменяем форму редактирования на отображение точки
@@ -102,14 +104,14 @@ export default class PointPresenter {
     replace(this.#pointEditComponent, this.#pointComponent); // Заменяем компонент точки на компонент формы редактирования
     document.addEventListener('keydown', this.#escKeyDownHandler); // Добавляем обработчик нажатия клавиши Escape
     this.#handleModeChange(); // Обрабатываем изменение режима
-    this.#mode = ModeType.EDITING; // Устанавливаем режим редактирования
+    this.#modeType = ModeType.EDITING; // Устанавливаем режим редактирования
   }
 
   #replaceFormToPoint() {
     // Метод для замены формы на точку
     replace(this.#pointComponent, this.#pointEditComponent); // Заменяем компонент формы редактирования на компонент точки
     document.removeEventListener('keydown', this.#escKeyDownHandler); // Удаляем обработчик нажатия клавиши Escape
-    this.#mode = ModeType.DEFAULT; // Устанавливаем режим по умолчанию
+    this.#modeType = ModeType.DEFAULT; // Устанавливаем режим по умолчанию
   }
 
   #editClickHandler = () => {
@@ -130,6 +132,7 @@ export default class PointPresenter {
       isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH, // Указываем тип обновления как минорный
       update, // Передаем точку данных
     );
+    this.#replaceFormToPoint();
   };
 
   #handleDeleteClick = (point) => {

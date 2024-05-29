@@ -3,8 +3,10 @@ import InfoTripView from '../view/info-trip-view.js';
 import NoPointView from '../view/no-point-view.js';
 import PointPresenter from './point-presenter.js';
 import FilterPresenter from './filter-presenter.js';
+import NewPointPresenter from './new-point-presenter.js';
+import TripList from '../view/trip-list-view.js';
 import { render, remove } from '../framework/render.js';
-import { SortType, FilterType, UpdateType, UserAction } from '../const.js';
+import { SortType, FilterType, UpdateType, UserAction, RenderPosition } from '../const.js';
 import { sortPointsByDay, sortPointsByTime, sortPointsByPrice } from '../utils/sort.js';
 import { filterByFuture, filterByPast, filterByPresent, filtersGenerateInfo } from '../utils/filter.js';
 
@@ -17,18 +19,28 @@ export default class BoardPresenter {
   #sortComponent = null; // Компонент для сортировки точек маршрута
   #pointPresenters = new Map(); // Презентеры точек маршрута
   #currentSortType = SortType.DAY; // Текущий тип сортировки
+  #tripList = new TripList();
   #noPointComponent = null;
+  #newPointPresenter = null;
+  #onNewPointDestroy = null;
 
-  constructor({ boardContainer, pointsModel, filterModel }) {
+  constructor({ boardContainer, pointsModel, filterModel, onNewPointDestroy }) {
     this.#boardContainer = boardContainer;
     this.#pointsModel = pointsModel;
     this.#filterModel = filterModel;
+    this.#onNewPointDestroy = onNewPointDestroy;
     this.#pointsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
   init() {
     this.#renderBoard();
+    this.#newPointPresenter = new NewPointPresenter({
+      boardContainer: this.#tripList.element,
+      onDataChange: this.#handleViewAction,
+      onModeChange: this.#handleModeChange,
+      onDestroy: this.#onNewPointDestroy,
+    });
     this.#renderFilters();// Отображение фильтров
     render(new InfoTripView(), infoTripElement, 'afterbegin'); // Отображение информации о поездке
   }
@@ -49,6 +61,12 @@ export default class BoardPresenter {
     }
   }
 
+  createPoint() {
+    this.#currentSortType = SortType.DAY;
+    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this.#newPointPresenter.init();
+  }
+
   #filterPoints(points) {
     const filterType = this.#filterModel.filter;
     const filteredPoints = filtersGenerateInfo[filterType](points);
@@ -56,10 +74,10 @@ export default class BoardPresenter {
     switch (filterType) {
       case FilterType.FUTURE:
         return filterByFuture(filteredPoints);
-      case FilterType.PAST:
-        return filterByPast(filteredPoints);
       case FilterType.PRESENT:
         return filterByPresent(filteredPoints);
+      case FilterType.PAST:
+        return filterByPast(filteredPoints);
       case FilterType.EVERYTHING:
         return filteredPoints;
       default:
@@ -72,22 +90,24 @@ export default class BoardPresenter {
     const boardDestinations = this.#pointsModel.destinations; // Получение списка пунктов назначения
     const boardOffers = this.#pointsModel.offers; // Получение списка дополнительных опций
     const points = this.points;
+    render(this.#tripList, this.#boardContainer);
 
     if (filtersGenerateInfo[this.#filterModel.filter](points).length === 0) {
       this.#renderNoPoints();
       return;
     }
 
-    this.#renderSort();
-
     // Для каждой точки маршрута отображается соответствующий компонент
     points.forEach((point) => {
       this.#renderPoint(point, boardDestinations, boardOffers);
     });
+
+    this.#renderSort();
   }
 
   // Обработка изменения режима представления
   #handleModeChange = () => {
+    this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
@@ -105,7 +125,7 @@ export default class BoardPresenter {
   // Отображение точки маршрута
   #renderPoint(point, boardDestinations, boardOffers) {
     const pointPresenter = new PointPresenter(
-      this.#boardContainer,
+      this.#tripList.element,
       this.#handleViewAction,
       point,
       boardDestinations,
@@ -129,7 +149,7 @@ export default class BoardPresenter {
       onSortTypeChange: this.#handleSortTypeChange
     });
 
-    render(this.#sortComponent, this.#boardContainer);
+    render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
   }
 
   // Обработка изменения типа сортировки
@@ -145,9 +165,11 @@ export default class BoardPresenter {
 
   #clearBoard({ resetSortType = false } = {}) {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
+    this.#newPointPresenter.destroy();
     this.#pointPresenters.clear();
-    if (this.#sortComponent) {
-      remove(this.#sortComponent);
+    remove(this.#sortComponent);
+    if (this.#noPointComponent) {
+      remove(this.#noPointComponent);
     }
 
     if (resetSortType) {
@@ -186,7 +208,6 @@ export default class BoardPresenter {
         break;
       case UpdateType.MAJOR:
         //обновление всей доски (например, при переключении фильтра)
-        this.#clearBoard({ resetSortType: true });
         this.#currentSortType = SortType.DAY;
         this.#renderBoard();
         break;

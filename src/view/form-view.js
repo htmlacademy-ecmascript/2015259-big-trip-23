@@ -1,10 +1,12 @@
-import { CITIES, POINT_TYPES, TIME_FORMAT, FULL_DATE_FORMAT } from '../const.js';
+import { CITIES, POINT_TYPES, TIME_FORMAT, FULL_DATE_FORMAT, ModeType } from '../const.js';
 import { transformDate, formatDateInForm } from '../utils/utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
+import dayjs from 'dayjs';
 
 import 'flatpickr/dist/flatpickr.min.css';
 
+// Функция для рендеринга типов точек маршрута
 function renderRoutesTypes(id, offerType) {
   return POINT_TYPES.map((type) => `
         <div class="event__type-item">
@@ -24,8 +26,9 @@ function renderRoutesTypes(id, offerType) {
   ).join('');
 }
 
+// Функция для рендеринга доступных предложений
 function renderOffersTypes(offersTypes, pointOffers, id) {
-  if (offersTypes.length === 0) {
+  if (offersTypes && offersTypes.length === 0) {
     return '';
   }
 
@@ -53,6 +56,7 @@ function renderOffersTypes(offersTypes, pointOffers, id) {
     </section>`;
 }
 
+// Функция для рендеринга информации о месте назначения
 function renderPointDestination(id, pointDest) {
   if (!pointDest || !pointDest.description || !pointDest.pictures || pointDest.pictures.length === 0) {
     return '';
@@ -75,8 +79,10 @@ function renderPointDestination(id, pointDest) {
     </section>`;
 }
 
+// Функция для рендеринга списка городов в поле ввода назначения
 const renderCityOptionsList = () => CITIES.map((city) => `<option value="${city}"></option>`).join('');
 
+// Функция для рендеринга обертки типа маршрута
 function renderTypeWrapper(id, routesTypesMarkup, offerType) {
   return `
     <div class="event__type-wrapper">
@@ -94,11 +100,12 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType) {
     </div>`;
 }
 
+// Функция для рендеринга полей события
 function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination) {
   return `
       <div class="event__field-group  event__field-group--destination">
         <label class="event__label event__type-output" for="event-destination-${id}">
-          ${transformDate(offerType)}
+          ${offerType ? transformDate(offerType) : ''}
         </label>
         <input
           class="event__input event__input--destination"
@@ -107,6 +114,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           name="event-destination"
           value="${pointDestination?.name || ''}"
           list="destination-list-${id}"
+          required
         >
         <datalist id="destination-list-${id}">
           ${renderCityOptionsList(id)}
@@ -120,6 +128,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           type="text"
           name="event-start-time"
           value="${formatDateInForm(dateFrom, FULL_DATE_FORMAT)} ${formatDateInForm(dateFrom, TIME_FORMAT)}"
+          required
         >
         &mdash;
         <label class="visually-hidden" for="event-end-time-${id}">To</label>
@@ -129,6 +138,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           type="text"
           name="event-end-time"
           value="${formatDateInForm(dateTo, FULL_DATE_FORMAT)} ${formatDateInForm(dateTo, TIME_FORMAT)}"
+          required
         >
       </div>
       <div class="event__field-group  event__field-group--price">
@@ -136,11 +146,12 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input event__input--price" id="event-price-${id}" type="text" name="event-price" value="${basePrice}">
+        <input class="event__input event__input--price" id="event-price-${id}" type="number" min=1 name="event-price" value="${basePrice}" required>
       </div>`;
 }
 
-function createEditFormTemplate(point, destinations, offers) {
+// Функция для создания шаблона формы редактирования события
+function createEditFormTemplate(point, destinations = [], offers, mode) {
   const {
     basePrice,
     dateFrom,
@@ -150,7 +161,7 @@ function createEditFormTemplate(point, destinations, offers) {
     offers: offersList,
     id,
   } = point;
-  const pointDestination = destinations.find((dest) => dest?.id === destination);
+  const pointDestination = destinations.find((dest) => dest.id === destination);
   const typeOffers = offers.find((offer) => offer?.type === offerType).offers;
   const pointOffers = typeOffers.filter((typeOffer) => offersList.includes(typeOffer?.id));
 
@@ -166,26 +177,29 @@ function createEditFormTemplate(point, destinations, offers) {
           ${routesTypesWrapperMarkup}
           ${eventFieldGroupsMarkup}
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Delete</button>
+          <button class="event__reset-btn" type="reset">${mode === ModeType.CREATE_NEW ? 'Сancel' : 'Delete'}</button>
           <button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Open event</span>
           </button>
         </header>
         <section class="event__details">
           ${offersTypesMarkup}
-          ${pointDestinationMarkup}
+          ${pointDestination ? pointDestinationMarkup : ''}
       </section>
     </form>`
   );
 }
+
+// Класс представления формы редактирования события
 export default class FormView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleFormClose = null;
   #dateFrom = null;
   #dateTo = null;
   #handleDeleteClick = null;
+  #modeType = null;
 
-  constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm, onDeleteClick }) {
+  constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm, onDeleteClick, mode }) {
     super();
     this.point = point;
     this.destinations = boardDestinations;
@@ -193,6 +207,7 @@ export default class FormView extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseForm;
     this.#handleDeleteClick = onDeleteClick;
+    this.#modeType = mode;
     this._setState(FormView.parsePointToState(point));
     this._restoreHandlers();
   }
@@ -203,14 +218,14 @@ export default class FormView extends AbstractStatefulView {
     this.element.querySelector('.event__save-btn')?.addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group')?.addEventListener('change', this.#changeTransportTypeHandler);
     this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#selectOfferHandler);
-    this.element.querySelector('.event__input--price')?.addEventListener('input', this.#priceInputHandler);
+    this.element.querySelector('.event__input--price')?.addEventListener('change', this.#priceInputHandler);
     this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formDeleteClickHandler);
     this.#setDatepicker();
   }
 
   get template() {
-    return createEditFormTemplate(this._state, this.destinations, this.offers);
+    return createEditFormTemplate(this._state, this.destinations, this.offers, this.#modeType);
   }
 
   reset(point) {
@@ -231,21 +246,25 @@ export default class FormView extends AbstractStatefulView {
     }
   }
 
+  // Обработчик закрытия формы
   #formCloseHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormClose();
   };
 
+  // Обработчик удаления события
   #formDeleteClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleDeleteClick(FormView.parseStateToPoint(this._state));
   };
 
+  // Обработчик отправки формы
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormSubmit({...this._state});
   };
 
+  // Установка виджетов выбора даты и времени
   #setDatepicker() {
     this.#dateFrom = flatpickr(
       this.element.querySelector(`#event-start-time-${this.point.id}`),
@@ -270,27 +289,32 @@ export default class FormView extends AbstractStatefulView {
     );
   }
 
+  // Обработчик изменения начальной даты
   #dateFromChangeHandler = ([dateFrom, dateTo]) => {
-    this._setState({ dateFrom: dateFrom });
-    this.#dateTo.set('minDate', dateFrom);
-    this.#dateFrom.set({ 'maxDate': dateTo });
+    this._setState({dateFrom: dayjs(dateFrom).$d.toISOString()});
+    this.#dateTo.set('minDate', dayjs(dateFrom).$d.toISOString());
+    this.#dateFrom.set({'maxDate': dayjs(dateTo).$d.toISOString()});
   };
 
+  // Обработчик изменения конечной даты
   #dateToChangeHandler = ([dateTo]) => {
-    this._setState({ dateTo: dateTo });
-    this.#dateFrom.set({ 'maxDate': dateTo });
+    this._setState({dateTo: dayjs(dateTo).$d.toISOString()});
+    this.#dateFrom.set({'maxDate': dayjs(dateTo).$d.toISOString()});
   };
 
+  // Обработчик изменения типа транспорта
   #changeTransportTypeHandler = (evt) => {
     evt.preventDefault();
     this.updateElement({ type: evt.target.value, offers: [] });
   };
 
+  // Обработчик изменения цены
   #priceInputHandler = (evt) => {
     evt.preventDefault();
-    this.updateElement({ basePrice: evt.target.value });
+    this._setState({ basePrice: +evt.target.value });
   };
 
+  // Обработчик выбора предложений
   #selectOfferHandler = (evt) => {
     if (evt.target.tagName === 'INPUT') {
       if (evt.target.checked) {
@@ -301,6 +325,7 @@ export default class FormView extends AbstractStatefulView {
     }
   };
 
+  // Обработчик изменения пункта назначения
   #destinationInputHandler = (evt) => {
     if (evt.target.tagName === 'INPUT') {
       const newDestination = this.destinations.find((dest) => dest?.name === evt.target.value);
@@ -310,10 +335,12 @@ export default class FormView extends AbstractStatefulView {
     }
   };
 
+  // Преобразование данных события в состояние представления
   static parsePointToState(point) {
     return { ...point };
   }
 
+  // Преобразование состояния представления в данные события
   static parseStateToPoint(state) {
     const point = { ...state };
 
