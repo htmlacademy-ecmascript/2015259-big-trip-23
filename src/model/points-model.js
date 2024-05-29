@@ -9,8 +9,13 @@ export default class PointsModel extends Observable {
   #destinations = [];
   #offers = [];
 
+  constructor() {
+    super();
+    this.initPoints();
+  }
+
   initPoints() {
-    this.#points = Array.from({ length: POINTS_COUNT }, getRandomPoint);
+    this.#points = Array.from({ length: POINTS_COUNT }, () => getRandomPoint());
     this.#destinations = mockDestinations;
     this.#offers = mockOffers;
   }

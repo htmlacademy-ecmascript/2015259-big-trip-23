@@ -1,4 +1,4 @@
-import { CITIES, POINT_TYPES, TIME_FORMAT, FULL_DATE_FORMAT, ModeType } from '../const.js';
+import { CITIES, POINT_TYPES, DateFormat, ModeType } from '../const.js';
 import { transformDate, formatDateInForm } from '../utils/utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
@@ -127,7 +127,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           id="event-start-time-${id}"
           type="text"
           name="event-start-time"
-          value="${formatDateInForm(dateFrom, FULL_DATE_FORMAT)} ${formatDateInForm(dateFrom, TIME_FORMAT)}"
+          value="${formatDateInForm(dateFrom, DateFormat.FULL)} ${formatDateInForm(dateFrom, DateFormat.TIME)}"
           required
         >
         &mdash;
@@ -137,7 +137,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           id="event-end-time-${id}"
           type="text"
           name="event-end-time"
-          value="${formatDateInForm(dateTo, FULL_DATE_FORMAT)} ${formatDateInForm(dateTo, TIME_FORMAT)}"
+          value="${formatDateInForm(dateTo, DateFormat.FULL)} ${formatDateInForm(dateTo, DateFormat.TIME)}"
           required
         >
       </div>

@@ -13,7 +13,7 @@ const filterModel = new FilterModel();
 const boardPresenter = new BoardPresenter({
   boardContainer: boardContainerElement,
   pointsModel: pointsModel,
-  filterModel,
+  filterModel: filterModel,
   onNewPointDestroy: handleNewPointFormClose
 });
 

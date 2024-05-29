@@ -4,6 +4,7 @@ import { render, replace, remove } from '../framework/render.js';
 import { ModeType } from '../const.js';
 import { UserAction, UpdateType } from '../const.js';
 import { isDatesSame } from '../utils/utils.js';
+
 export default class PointPresenter {
   #boardContainer = null; // Контейнер для отображения точки
   #pointComponent = null; // Компонент точки
@@ -25,9 +26,8 @@ export default class PointPresenter {
     this.#handleModeChange = onModeChange;
   }
 
-  init(point) {
+  init() {
     // Метод для инициализации
-    this.#point = point;
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
     this.#pointComponent = new PointView({

@@ -35,14 +35,17 @@ export default class BoardPresenter {
 
   init() {
     this.#renderBoard();
+    this.#renderFilters();// Отображение фильтров
+    render(new InfoTripView(), infoTripElement, RenderPosition.AFTERBEGIN); // Отображение информации о поездке
+
     this.#newPointPresenter = new NewPointPresenter({
       boardContainer: this.#tripList.element,
       onDataChange: this.#handleViewAction,
+      pointsModel: this.#pointsModel,
       onModeChange: this.#handleModeChange,
       onDestroy: this.#onNewPointDestroy,
     });
-    this.#renderFilters();// Отображение фильтров
-    render(new InfoTripView(), infoTripElement, 'afterbegin'); // Отображение информации о поездке
+
   }
 
   // Получение отсортированного списка точек маршрута
@@ -55,7 +58,6 @@ export default class BoardPresenter {
       case SortType.PRICE:
         return [...points].sort(sortPointsByPrice);
       case SortType.DAY:
-        return [...points].sort(sortPointsByDay);
       default:
         return [...points].sort(sortPointsByDay);
     }
@@ -63,7 +65,7 @@ export default class BoardPresenter {
 
   createPoint() {
     this.#currentSortType = SortType.DAY;
-    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this.#filterModel.setFilter(UpdateType.MINOR, FilterType.EVERYTHING);
     this.#newPointPresenter.init();
   }
 
@@ -79,7 +81,6 @@ export default class BoardPresenter {
       case FilterType.PAST:
         return filterByPast(filteredPoints);
       case FilterType.EVERYTHING:
-        return filteredPoints;
       default:
         return filteredPoints;
     }
@@ -159,7 +160,7 @@ export default class BoardPresenter {
     }
 
     this.#currentSortType = sortType; // Сортировка точек маршрута
-    this.#clearBoard({ resetRenderedTaskCount: true }); // Очистка списка точек маршрута
+    this.#clearBoard({ resetSortType: true }); // Очистка списка точек маршрута
     this.#renderBoard(); // Повторное отображение списка точек маршрута
   };
 

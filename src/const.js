@@ -4,9 +4,13 @@ const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-i
 const SORTS = ['day', 'event', 'time', 'price', 'offers'];
 const POINTS_COUNT = 3;
 
-const DATE_FORMAT = 'MMM DD';
-const TIME_FORMAT = 'HH:mm';
-const FULL_DATE_FORMAT = 'DD/MM/YY';
+const DateFormat = {
+  DATE:'MMM DD',
+  REVERSE_DATE: 'D MMM',
+  TIME: 'HH:mm',
+  FULL: 'DD/MM/YY'
+};
+
 const NEW_POINT = {
   basePrice: 0,
   dateFrom: '',
@@ -16,6 +20,7 @@ const NEW_POINT = {
   offers: [],
   type:  POINT_TYPES[3]
 };
+
 const RenderPosition = {
   BEFOREBEGIN: 'beforebegin',
   AFTERBEGIN: 'afterbegin',
@@ -62,11 +67,9 @@ export {
   CITIES,
   POINT_TYPES,
   POINTS_COUNT,
-  DATE_FORMAT,
+  DateFormat,
   FilterType,
   SORTS,
-  TIME_FORMAT,
-  FULL_DATE_FORMAT,
   RenderPosition,
   EmptyFiltersList,
   ModeType,

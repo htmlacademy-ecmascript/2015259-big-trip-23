@@ -8,15 +8,13 @@ export default class NewPointPresenter {
   #handleDataChange = null;
   #handleDestroy = null;
   #pointEditComponent = null;
-  #boardDestinations = null;
-  #boardOffers = null;
+  #pointsModel = null;
 
-  constructor({ boardContainer, onDataChange, onDestroy, boardDestinations, boardOffers }) {
+  constructor({ boardContainer, onDataChange, onDestroy, pointsModel }) {
     this.#pointListContainer = boardContainer;
     this.#handleDataChange = onDataChange;
     this.#handleDestroy = onDestroy;
-    this.#boardDestinations = boardDestinations;
-    this.#boardOffers = boardOffers;
+    this.#pointsModel = pointsModel;
   }
 
   init() {
@@ -26,8 +24,8 @@ export default class NewPointPresenter {
 
     this.#pointEditComponent = new FormView({
       point: NEW_POINT,
-      boardDestinations: this.#boardDestinations,
-      boardOffers: this.#boardOffers,
+      boardDestinations: this.#pointsModel.destinations,
+      boardOffers: this.#pointsModel.offers,
       onFormSubmit: this.#handleFormSubmit,
       onDeleteClick: this.#handleDeleteClick,
       onCloseForm: this.#handleDeleteClick,
