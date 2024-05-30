@@ -3,9 +3,10 @@ const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-i
 
 const SORTS = ['day', 'event', 'time', 'price', 'offers'];
 const POINTS_COUNT = 3;
+const VALID_DATA_LENGTH = 2;
 
 const DateFormat = {
-  DATE:'MMM DD',
+  DATE: 'MMM DD',
   REVERSE_DATE: 'D MMM',
   TIME: 'HH:mm',
   FULL: 'DD/MM/YY'
@@ -18,7 +19,7 @@ const NEW_POINT = {
   destination: '',
   isFavorite: false,
   offers: [],
-  type:  POINT_TYPES[3]
+  type: POINT_TYPES[3]
 };
 
 const RenderPosition = {
@@ -76,5 +77,6 @@ export {
   SortType,
   UserAction,
   UpdateType,
-  NEW_POINT
+  NEW_POINT,
+  VALID_DATA_LENGTH
 };

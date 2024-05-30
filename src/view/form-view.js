@@ -1,5 +1,5 @@
 import { CITIES, POINT_TYPES, DateFormat, ModeType } from '../const.js';
-import { transformDate, formatDateInForm } from '../utils/utils.js';
+import { capitalizeFirstLetter, formatDateInForm } from '../utils/utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
 import dayjs from 'dayjs';
@@ -19,7 +19,7 @@ function renderRoutesTypes(id, offerType) {
             ${offerType === type ? 'checked' : ''}
           >
           <label class="event__type-label event__type-label--${type}" for="event-type-${type}-${id}">
-            ${transformDate(type)}
+            ${capitalizeFirstLetter(type)}
           </label>
         </div>
       `
@@ -102,10 +102,17 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType) {
 
 // Функция для рендеринга полей события
 function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination) {
+  const humanizesDuration = (date) => {
+    if (date) {
+      return `${formatDateInForm(date, DateFormat.FULL)} ${formatDateInForm(date, DateFormat.TIME)}`;
+    } else {
+      return '';
+    }
+  };
   return `
       <div class="event__field-group  event__field-group--destination">
         <label class="event__label event__type-output" for="event-destination-${id}">
-          ${offerType ? transformDate(offerType) : ''}
+          ${offerType ? capitalizeFirstLetter(offerType) : ''}
         </label>
         <input
           class="event__input event__input--destination"
@@ -127,7 +134,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           id="event-start-time-${id}"
           type="text"
           name="event-start-time"
-          value="${formatDateInForm(dateFrom, DateFormat.FULL)} ${formatDateInForm(dateFrom, DateFormat.TIME)}"
+          value="${humanizesDuration(dateFrom)}"
           required
         >
         &mdash;
@@ -137,7 +144,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           id="event-end-time-${id}"
           type="text"
           name="event-end-time"
-          value="${formatDateInForm(dateTo, DateFormat.FULL)} ${formatDateInForm(dateTo, DateFormat.TIME)}"
+          value="${humanizesDuration(dateTo)}"
           required
         >
       </div>
@@ -146,7 +153,15 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input event__input--price" id="event-price-${id}" type="number" min=1 name="event-price" value="${basePrice}" required>
+        <input
+        class="event__input event__input--price"
+        id="event-price-${id}"
+        type="number"
+        min=1
+        pattern="^[ 0-9]+$"
+        name="event-price"
+        value="${basePrice}"
+        required>
       </div>`;
 }
 
@@ -261,7 +276,7 @@ export default class FormView extends AbstractStatefulView {
   // Обработчик отправки формы
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit({...this._state});
+    this.#handleFormSubmit({ ...this._state });
   };
 
   // Установка виджетов выбора даты и времени
@@ -271,9 +286,9 @@ export default class FormView extends AbstractStatefulView {
       {
         dateFormat: 'd/m/y H:i',
         enableTime: true,
-        defaultDate: this._state.date_from,
+        defaultDate: this._state.dateFrom,
         onChange: this.#dateFromChangeHandler,
-        ['time_24hr']: true,
+        'time_24hr': true,
         maxDate: this._state.dateTo,
       },
     );
@@ -282,24 +297,26 @@ export default class FormView extends AbstractStatefulView {
       {
         dateFormat: 'd/m/y H:i',
         enableTime: true,
-        defaultDate: this._state.date_to,
+        defaultDate: this._state.dateTo,
         onChange: this.#dateToChangeHandler,
-        ['time_24hr']: true
+        'time_24hr': true,
+        minDate: this._state.dateFrom,
       },
     );
   }
 
   // Обработчик изменения начальной даты
-  #dateFromChangeHandler = ([dateFrom, dateTo]) => {
-    this._setState({dateFrom: dayjs(dateFrom).$d.toISOString()});
-    this.#dateTo.set('minDate', dayjs(dateFrom).$d.toISOString());
-    this.#dateFrom.set({'maxDate': dayjs(dateTo).$d.toISOString()});
+  #dateFromChangeHandler = ([selectedDate]) => {
+    const newMinDate = dayjs(selectedDate).toISOString();
+    this._setState({ dateFrom: newMinDate });
+    this.#dateTo.set('minDate', newMinDate);
   };
 
   // Обработчик изменения конечной даты
-  #dateToChangeHandler = ([dateTo]) => {
-    this._setState({dateTo: dayjs(dateTo).$d.toISOString()});
-    this.#dateFrom.set({'maxDate': dayjs(dateTo).$d.toISOString()});
+  #dateToChangeHandler = ([selectedDate]) => {
+    const newMaxDate = dayjs(selectedDate).toISOString();
+    this._setState({ dateTo: newMaxDate });
+    this.#dateFrom.set('maxDate', newMaxDate);
   };
 
   // Обработчик изменения типа транспорта

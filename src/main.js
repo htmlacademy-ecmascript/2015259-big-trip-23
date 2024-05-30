@@ -7,27 +7,29 @@ import { render } from './framework/render.js';
 const boardContainerElement = document.querySelector('.trip-events');
 const buttonContainer = document.querySelector('.trip-main');
 const pointsModel = new PointsModel();
-pointsModel.initPoints();
 const filterModel = new FilterModel();
 
 const boardPresenter = new BoardPresenter({
   boardContainer: boardContainerElement,
-  pointsModel: pointsModel,
-  filterModel: filterModel,
-  onNewPointDestroy: handleNewPointFormClose
+  pointsModel,
+  filterModel,
+  onNewPointDestroy: handleNewPointFormClose,
 });
 
-const newPointButton = new NewPointButtonView({
-  onClick: () => {
-    newPointButton.disabled = true;
-    boardPresenter.createPoint();
-  }
+const newPointButtonComponent = new NewPointButtonView({
+  onClick: handleNewPointButtonClick
 });
-
-render(newPointButton, buttonContainer);
-
-boardPresenter.init();
 
 function handleNewPointFormClose() {
-  newPointButton.disabled = false;
+  newPointButtonComponent.element.disabled = false;
 }
+
+function handleNewPointButtonClick() {
+  boardPresenter.createPoint();
+  newPointButtonComponent.element.disabled = true;
+}
+
+pointsModel.initPoints();
+boardPresenter.init();
+render(newPointButtonComponent, buttonContainer);
+

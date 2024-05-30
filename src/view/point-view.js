@@ -1,7 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import { calculateDurationOfStay, transformToDateFromFormat, transformToTimeToFormat } from '../utils/utils.js';
+import { calculateDurationOfStay, transformToTimeToFormat, transformToDateFromFormat, formatDurationToTwoCharacters } from '../utils/utils.js';
 
 dayjs.extend(duration);
 
@@ -21,9 +21,12 @@ function createPointTemplate(point, destinations, offers) {
   const filteredPointOffers = typeOffers.filter((offer) => point.offers.includes(offer.id));
 
   const durationOfStay = calculateDurationOfStay(point.dateTo, point.dateFrom);
-  const durationOfStayFormat = `${durationOfStay.days() > 0 ? `${durationOfStay.days()}D` : ''} ${durationOfStay.hours()}H ${durationOfStay.minutes()}M`;
+  const daysDuration = Math.trunc(durationOfStay.asDays());
+  const durationOfStayFormat = `${durationOfStay.days() > 0 ? `${formatDurationToTwoCharacters(daysDuration)}D` : ''} ${formatDurationToTwoCharacters(durationOfStay.hours())}H ${formatDurationToTwoCharacters(durationOfStay.minutes())}M`;
 
   return `
+
+     <li class="trip-events__item">
         <div class="event">
             <time class="event__date" datetime="${transformToDateFromFormat(point.dateFrom)}">${transformToDateFromFormat(point.dateFrom)}</time>
             <div class="event__type">
@@ -55,6 +58,8 @@ function createPointTemplate(point, destinations, offers) {
                 <span class="visually-hidden">Open event</span>
             </button>
         </div>
+     </li>
+
     `;
 }
 

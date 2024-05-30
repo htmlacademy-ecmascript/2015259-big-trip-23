@@ -32,7 +32,7 @@ export default class NewPointPresenter {
       mode: ModeType.CREATE_NEW
     });
 
-    render(this.#pointEditComponent, this.#pointListContainer.querySelector('.trip-events__trip-sort'), RenderPosition.AFTEREND);
+    render(this.#pointEditComponent, this.#pointListContainer, RenderPosition.AFTEREND);
 
     document.addEventListener('keydown', this.#escKeyDownHandler);
   }

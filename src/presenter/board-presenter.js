@@ -143,26 +143,27 @@ export default class BoardPresenter {
     render(this.#noPointComponent, this.#boardContainer);
   }
 
-  // Отображение компонента сортировки
-  #renderSort() {
-    this.#sortComponent = new SortView({
-      currentSortType: this.#currentSortType,
-      onSortTypeChange: this.#handleSortTypeChange
-    });
-
-    render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
-  }
-
   // Обработка изменения типа сортировки
   #handleSortTypeChange = (sortType) => {
     if (this.#currentSortType === sortType) {
       return;
     }
 
-    this.#currentSortType = sortType; // Сортировка точек маршрута
-    this.#clearBoard({ resetSortType: true }); // Очистка списка точек маршрута
-    this.#renderBoard(); // Повторное отображение списка точек маршрута
+    this.#currentSortType = sortType; // Обновите текущий тип сортировки
+    this.#clearBoard(); // Очистите доску
+    this.#renderBoard(); // Перерисуйте доску
   };
+
+  // Отображение компонента сортировки
+  #renderSort() {
+    // Создайте новый экземпляр SortView с обновленным типом сортировки
+    this.#sortComponent = new SortView({
+      currentSortType: this.#currentSortType,
+      onSortTypeChange: this.#handleSortTypeChange
+    });
+    // Вставьте компонент сортировки в DOM
+    render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
+  }
 
   #clearBoard({ resetSortType = false } = {}) {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
@@ -198,9 +199,7 @@ export default class BoardPresenter {
     switch (updateType) {
       case UpdateType.PATCH:
         //обновление части списка (например, когда поменялось описание)
-        if (this.#pointPresenters.has(data.id)) {
-          this.#pointPresenters.get(data.id).init(data);
-        }
+        this.#pointPresenters.get(data.id).init(data);
         break;
       case UpdateType.MINOR:
         //обновление списока (например, когда задача ушла в архив)
@@ -209,6 +208,7 @@ export default class BoardPresenter {
         break;
       case UpdateType.MAJOR:
         //обновление всей доски (например, при переключении фильтра)
+        this.#clearBoard({ resetSortType: true });
         this.#currentSortType = SortType.DAY;
         this.#renderBoard();
         break;

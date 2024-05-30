@@ -145,6 +145,6 @@ export default class PointPresenter {
 
   #toggleFavoriteStateHandler = () => {
     // Обработчик переключения состояния избранного
-    this.#handleDataChange(UserAction.UPDATE_POINT, UpdateType.PATCH, { ...this.#point, isFavorite: !this.#point.isFavorite }); // Обрабатываем изменение избранного
+    this.#handleDataChange(UserAction.UPDATE_POINT, UpdateType.MINOR, { ...this.#point, isFavorite: !this.#point.isFavorite }); // Обрабатываем изменение избранного
   };
 }

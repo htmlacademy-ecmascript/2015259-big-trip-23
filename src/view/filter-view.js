@@ -1,10 +1,7 @@
-import { FilterType } from '../const.js';
+import { capitalizeFirstLetter } from '../utils/utils.js';
 import AbstractView from '../framework/view/abstract-view.js';
-import { transformDate } from '../utils/utils.js';
 
-const filtersNames = Object.values(FilterType);
-
-function renderFilterItem(filter, index, currentFilterType) {
+function renderFilterItem(filter, currentFilterType) {
   const { type, count } = filter;
   return `
     <div class="trip-filters__filter">
@@ -16,14 +13,14 @@ function renderFilterItem(filter, index, currentFilterType) {
         value="${type}"
         ${count === 0 ? 'disabled' : ''}
         ${currentFilterType === type ? 'checked' : ''}
-        data-filter-type="${filtersNames[index]}"
+        data-filter-type="${type}"
       >
       <label
         class="trip-filters__filter-label"
         for="filter-${type}"
         ${count === 0 ? 'disabled' : ''}
       >
-        ${transformDate(type)}
+        ${capitalizeFirstLetter(type)}
       </label>
     </div>
   `;
@@ -41,18 +38,16 @@ function createFilterTemplate(filters, currentFilterType) {
 }
 
 export default class FilterView extends AbstractView {
-  #filters = {};
-  #handleFilterTypeChange = null;
-  #currentFilter = null;
+  #filters;
+  #handleFilterTypeChange;
+  #currentFilter;
 
   constructor({ filters, onFilterTypeChange, currentFilterType }) {
     super();
-
     this.#filters = filters;
     this.#handleFilterTypeChange = onFilterTypeChange;
     this.#currentFilter = currentFilterType;
-
-    this.element.addEventListener('change', this.#filterTypeChangeHandler);
+    this.element.addEventListener('change', this.#filterTypeChangeHandler.bind(this));
   }
 
   get template() {
@@ -60,9 +55,9 @@ export default class FilterView extends AbstractView {
   }
 
   #filterTypeChangeHandler = (evt) => {
-    if (evt.target.getAttribute('disabled') === '' || evt.target.tagName !== 'INPUT') {
+    if (evt.target.tagName !== 'INPUT') {
       return;
     }
-    this.#handleFilterTypeChange(evt.target.dataset.filterType);
+    this.#handleFilterTypeChange(evt.target.value);
   };
 }

@@ -1,10 +1,9 @@
 import { SORTS } from '../const.js';
 import AbstractView from '../framework/view/abstract-view.js';
-import { transformDate } from '../utils/utils.js';
+import { capitalizeFirstLetter } from '../utils/utils.js';
 
-const sortsNames = Object.values(SORTS);
 
-function renderSortItem(sort, index, currentSortType) {
+function renderSortItem(sort, currentSortType) {
   return `
       <div class="trip-sort__item trip-sort__item--${sort}">
           <input
@@ -14,10 +13,10 @@ function renderSortItem(sort, index, currentSortType) {
               name="trip-sort"
               value="sort-${sort}"
               ${sort === 'offers' || sort === 'event' ? 'disabled' : ''}
-              ${currentSortType === sortsNames[index] ? 'checked' : ''}
-              data-sort-type="${sortsNames[index]}"
+              ${currentSortType === sort ? 'checked' : ''}
+              data-sort-type="${sort}"
           >
-          <label class="trip-sort__btn" for="sort-${sort}">${transformDate(sort)}</label>
+          <label class="trip-sort__btn" for="sort-${sort}">${capitalizeFirstLetter(sort)}</label>
       </div>
   `;
 }
@@ -38,20 +37,19 @@ export default class SortView extends AbstractView {
     super();
 
     this.#handleSortTypeChange = onSortTypeChange;
-
-    this.element.addEventListener('change', this.#sortTypeChangeHandler.bind(this));
     this.#currentSortType = currentSortType;
+    this.element.addEventListener('change', this.#sortTypeChangeHandler);
   }
 
   get template() {
     return createSortTemplate(this.#currentSortType);
   }
 
-  #sortTypeChangeHandler(evt) {
-    if (evt.target.tagName !== 'INPUT' || evt.target.dataset.sortType === 'offers' || evt.target.dataset.sortType === 'event') {
-      return;
-    }
+  #sortTypeChangeHandler = (evt) => {
+    const { sortType } = evt.target.dataset;
+    if (evt.target.tagName === 'INPUT' && sortType !== 'offers' && sortType !== 'event') {
 
-    this.#handleSortTypeChange(evt.target.dataset.sortType);
-  }
+      this.#handleSortTypeChange(sortType);
+    }
+  };
 }
