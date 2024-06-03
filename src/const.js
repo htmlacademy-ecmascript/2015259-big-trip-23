@@ -3,11 +3,26 @@ const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-i
 
 const SORTS = ['day', 'event', 'time', 'price', 'offers'];
 const POINTS_COUNT = 3;
+const VALID_DATA_LENGTH = 2;
 
-const DATE_FORMAT = 'MMM DD';
-const TIME_FORMAT = 'HH:mm';
-const FULL_DATE_FORMAT = 'DD/MM/YY';
-const RENDER_POSITION = {
+const DateFormat = {
+  DATE: 'MMM DD',
+  REVERSE_DATE: 'D MMM',
+  TIME: 'HH:mm',
+  FULL: 'DD/MM/YY'
+};
+
+const NEW_POINT = {
+  basePrice: 0,
+  dateFrom: '',
+  dateTo: '',
+  destination: '',
+  isFavorite: false,
+  offers: [],
+  type: POINT_TYPES[3]
+};
+
+const RenderPosition = {
   BEFOREBEGIN: 'beforebegin',
   AFTERBEGIN: 'afterbegin',
   BEFOREEND: 'beforeend',
@@ -29,6 +44,7 @@ const EmptyFiltersList = {
 const ModeType = {
   DEFAULT: 'DEFAULT',
   EDITING: 'EDITING',
+  CREATE_NEW: 'CREATE_NEW',
 };
 
 const SortType = {
@@ -37,17 +53,30 @@ const SortType = {
   PRICE: 'price',
 };
 
+const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
 export {
   CITIES,
   POINT_TYPES,
   POINTS_COUNT,
-  DATE_FORMAT,
+  DateFormat,
   FilterType,
   SORTS,
-  TIME_FORMAT,
-  FULL_DATE_FORMAT,
-  RENDER_POSITION,
+  RenderPosition,
   EmptyFiltersList,
   ModeType,
-  SortType
+  SortType,
+  UserAction,
+  UpdateType,
+  NEW_POINT,
+  VALID_DATA_LENGTH
 };

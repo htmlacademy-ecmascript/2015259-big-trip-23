@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { DATE_FORMAT, TIME_FORMAT } from '../const.js';
+import { DateFormat, VALID_DATA_LENGTH } from '../const.js';
 import { nanoid } from 'nanoid';
 
 const getRandomArrayElement = (arr) => {
@@ -7,22 +7,29 @@ const getRandomArrayElement = (arr) => {
   return { ...item, id: nanoid() };
 };
 
-const transformDate = (str) => str[0]?.toUpperCase() + str?.slice(1);
+const capitalizeFirstLetter = (str) => str[0]?.toUpperCase() + str?.slice(1);
 const formatDateInForm = (date, format) => date ? dayjs(date).format(format) : '';
-const updateItem = (items, update) => items.map((item) => item.id === update.id ? update : item);
+const isDatesSame = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, 'D');
 
-const transformToDateFromFormat = (dateFrom) => formatDateInForm(dateFrom, DATE_FORMAT);
-const transformToTimeFromFormat = (dateFrom) => formatDateInForm(dateFrom, TIME_FORMAT);
-const transformToTimeToFormat = (date) => formatDateInForm(date, TIME_FORMAT);
+const transformToDateFromFormat = (dateFrom) => formatDateInForm(dateFrom, DateFormat.DATE);
+const transformToTimeToFormat = (date) => formatDateInForm(date, DateFormat.TIME);
 const calculateDurationOfStay = (dateTo, dateFrom) => dayjs.duration(dayjs(dateTo).diff(dayjs(dateFrom)));
+const formatDurationToTwoCharacters = (durationElement) => {
+  const isTwoCharacters = String(durationElement).length < VALID_DATA_LENGTH;
+  if (isTwoCharacters) {
+    return `0${durationElement}`;
+  } else {
+    return durationElement;
+  }
+};
 
 export {
   getRandomArrayElement,
-  transformDate,
+  capitalizeFirstLetter,
   formatDateInForm,
   transformToDateFromFormat,
-  transformToTimeFromFormat,
   transformToTimeToFormat,
   calculateDurationOfStay,
-  updateItem,
+  isDatesSame,
+  formatDurationToTwoCharacters
 };

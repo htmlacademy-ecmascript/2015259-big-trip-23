@@ -1,32 +1,33 @@
-import EditFormView from '../view/edit-form-view.js';
+import FormView from '../view/form-view.js';
 import PointView from '../view/point-view.js';
 import { render, replace, remove } from '../framework/render.js';
 import { ModeType } from '../const.js';
+import { UserAction, UpdateType } from '../const.js';
+import { isDatesSame } from '../utils/utils.js';
 
 export default class PointPresenter {
   #boardContainer = null; // Контейнер для отображения точки
   #pointComponent = null; // Компонент точки
   #pointEditComponent = null; // Компонент формы редактирования точки
-  #handleFavotiteChange = null; // Функция для обработки изменения избранного
+  #handleDataChange = null;
   #boardOffers = null; // Предложения на доске
   #boardDestinations = null; // Места на доске
   #point = null; // Текущая точка
   #handleModeChange = null; // Функция для обработки изменения режима
-  #mode = ModeType.DEFAULT; // Режим по умолчанию
+  #modeType = ModeType.DEFAULT; // Режим по умолчанию
 
-  constructor(boardContainer, onFavoriteChange, point, boardDestinations, boardOffers, onModeChange) {
+  constructor(boardContainer, onDataChange, point, boardDestinations, boardOffers, onModeChange) {
     // Конструктор принимает контейнер, функцию для обработки избранного, точку, места и предложения на доске, а также функцию для обработки изменения режима
     this.#boardContainer = boardContainer;
-    this.#handleFavotiteChange = onFavoriteChange;
+    this.#handleDataChange = onDataChange;
     this.#point = point;
     this.#boardDestinations = boardDestinations;
     this.#boardOffers = boardOffers;
     this.#handleModeChange = onModeChange;
   }
 
-  init(point) {
+  init() {
     // Метод для инициализации
-    this.#point = point;
     const prevPointComponent = this.#pointComponent;
     const prevPointEditComponent = this.#pointEditComponent;
     this.#pointComponent = new PointView({
@@ -36,15 +37,18 @@ export default class PointPresenter {
       boardOffers: this.#boardOffers,
       onEditClick: this.#editClickHandler, // Обработчик клика по кнопке редактирования
       onFavoriteClick: this.#toggleFavoriteStateHandler, // Обработчик клика по кнопке избранного
+      mode: this.#modeType
     });
 
-    this.#pointEditComponent = new EditFormView({
+    this.#pointEditComponent = new FormView({
       // Создаем новый компонент формы редактирования точки
       point: { ...this.#point },
       boardDestinations: this.#boardDestinations,
       boardOffers: this.#boardOffers,
       onFormSubmit: this.#formSubmitHandler, // Обработчик отправки формы
-      onCloseForm: this.#buttonCloseHandler //Обработчик закрытия формы
+      onCloseForm: this.#buttonCloseHandler, //Обработчик закрытия формы
+      onDeleteClick: this.#handleDeleteClick,
+      mode: this.#modeType
     });
     if (prevPointComponent === null || prevPointEditComponent === null) {
       // Если компоненты точки или формы редактирования не существуют
@@ -52,12 +56,12 @@ export default class PointPresenter {
       return;
     }
 
-    if (this.#mode === ModeType.DEFAULT) {
+    if (this.#modeType === ModeType.DEFAULT) {
       // Если режим по умолчанию
       replace(this.#pointComponent, prevPointComponent); // Заменяем компонент точки на новый
     }
 
-    if (this.#mode === ModeType.EDITING) {
+    if (this.#modeType === ModeType.EDITING) {
       // Если режим редактирования
       replace(this.#pointEditComponent, prevPointEditComponent); // Заменяем компонент формы редактирования на новый
     }
@@ -74,7 +78,7 @@ export default class PointPresenter {
 
   resetView() {
     // Метод для сброса отображения
-    if (this.#mode !== ModeType.DEFAULT) {
+    if (this.#modeType !== ModeType.DEFAULT) {
       // Если режим не по умолчанию
       this.#pointEditComponent.reset(); // Сбрасываем данные формы редактирования точки до исходного состояни
       this.#replaceFormToPoint(); // Заменяем форму редактирования на отображение точки
@@ -100,14 +104,14 @@ export default class PointPresenter {
     replace(this.#pointEditComponent, this.#pointComponent); // Заменяем компонент точки на компонент формы редактирования
     document.addEventListener('keydown', this.#escKeyDownHandler); // Добавляем обработчик нажатия клавиши Escape
     this.#handleModeChange(); // Обрабатываем изменение режима
-    this.#mode = ModeType.EDITING; // Устанавливаем режим редактирования
+    this.#modeType = ModeType.EDITING; // Устанавливаем режим редактирования
   }
 
   #replaceFormToPoint() {
     // Метод для замены формы на точку
     replace(this.#pointComponent, this.#pointEditComponent); // Заменяем компонент формы редактирования на компонент точки
     document.removeEventListener('keydown', this.#escKeyDownHandler); // Удаляем обработчик нажатия клавиши Escape
-    this.#mode = ModeType.DEFAULT; // Устанавливаем режим по умолчанию
+    this.#modeType = ModeType.DEFAULT; // Устанавливаем режим по умолчанию
   }
 
   #editClickHandler = () => {
@@ -115,14 +119,32 @@ export default class PointPresenter {
     this.#replacePointToForm(); // Заменяем точку на форму редактирования
   };
 
-  #formSubmitHandler = (point) => {
+  #formSubmitHandler = (update) => {
     // Обработчик отправки формы
-    this.#handleFavotiteChange(point); // Обрабатываем изменение избранного
-    this.#replaceFormToPoint(); // Заменяем форму на точку
+    const isMinorUpdate = (
+      !isDatesSame(this.#point.dateFrom, update.dateFrom) ||
+      !isDatesSame(this.#point.dateTo, update.dateTo) ||
+      this.#point.basePrice !== update.basePrice
+    );
+
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT, // Вызываем действие пользователя для обновления точки
+      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH, // Указываем тип обновления как минорный
+      update, // Передаем точку данных
+    );
+    this.#replaceFormToPoint();
+  };
+
+  #handleDeleteClick = (point) => {
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      point,
+    );
   };
 
   #toggleFavoriteStateHandler = () => {
     // Обработчик переключения состояния избранного
-    this.#handleFavotiteChange({ ...this.#point, isFavorite: !this.#point.isFavorite }); // Обрабатываем изменение избранного
+    this.#handleDataChange(UserAction.UPDATE_POINT, UpdateType.MINOR, { ...this.#point, isFavorite: !this.#point.isFavorite }); // Обрабатываем изменение избранного
   };
 }
