@@ -1,4 +1,3 @@
-const CITIES = ['Limassol', 'Hague', 'Geneva', 'Berlin', 'Stockholm'];
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 const SORTS = ['day', 'event', 'time', 'price', 'offers'];
@@ -44,7 +43,7 @@ const EmptyFiltersList = {
 };
 
 const ModeType = {
-  DEFAULT: 'DEFAULT',
+  VIEWING: 'VIEWING',
   EDITING: 'EDITING',
   CREATE_NEW: 'CREATE_NEW',
 };
@@ -67,8 +66,12 @@ const UpdateType = {
   INIT: 'INIT',
 };
 
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
 export {
-  CITIES,
   POINT_TYPES,
   DateFormat,
   FilterType,
@@ -82,5 +85,6 @@ export {
   NEW_POINT,
   VALID_DATA_LENGTH,
   AUTHORIZATION,
-  END_POINT
+  END_POINT,
+  TimeLimit
 };

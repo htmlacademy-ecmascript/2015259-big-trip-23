@@ -6,8 +6,9 @@ import FilterPresenter from './filter-presenter.js';
 import NewPointPresenter from './new-point-presenter.js';
 import TripList from '../view/trip-list-view.js';
 import LoadingView from '../view/loading-view.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import { render, remove } from '../framework/render.js';
-import { SortType, FilterType, UpdateType, UserAction, RenderPosition } from '../const.js';
+import { SortType, FilterType, UpdateType, UserAction, RenderPosition, TimeLimit } from '../const.js';
 import { sortPointsByDay, sortPointsByTime, sortPointsByPrice } from '../utils/sort.js';
 import { filterByFuture, filterByPast, filterByPresent, filtersGenerateInfo } from '../utils/filter.js';
 
@@ -26,6 +27,10 @@ export default class BoardPresenter {
   #onNewPointDestroy = null;
   #loadingComponent = new LoadingView();
   #isLoading = true;
+  #uiBlocker = new UiBlocker({
+    lowerLimit: TimeLimit.LOWER_LIMIT,
+    upperLimit: TimeLimit.UPPER_LIMIT
+  });
 
   constructor({ boardContainer, pointsModel, filterModel, onNewPointDestroy }) {
     this.#boardContainer = boardContainer;
@@ -146,18 +151,35 @@ export default class BoardPresenter {
   }
 
   // Обработка пользовательских действий
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
     switch (actionType) {
-      case UserAction.UPDATE_POINT:
-        this.#pointsModel.updatePoint(updateType, update); // Обновление данных точки маршрута
+      case UserAction.UPDATE_POINT: // Обновление данных точки маршрута
+        this.#pointPresenters.get(update.id).setSaving();
+        try {
+          await this.#pointsModel.updatePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
-      case UserAction.ADD_POINT:
-        this.#pointsModel.addPoint(updateType, update); // Добавление новой точки маршрута
+      case UserAction.ADD_POINT: // Добавление новой точки маршрута
+        this.#newPointPresenter.setSaving();
+        try {
+          await this.#pointsModel.addPoint(updateType, update);
+        } catch (err) {
+          this.#newPointPresenter.setAborting();
+        }
         break;
-      case UserAction.DELETE_POINT:
-        this.#pointsModel.deletePoint(updateType, update); // Удаление точки маршрута
+      case UserAction.DELETE_POINT: // Удаление точки маршрута
+        this.#pointPresenters.get(update.id).setDeleting();
+        try {
+          await this.#pointsModel.deletePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
     }
+    this.#uiBlocker.unblock();
   };
 
   // Обработка событий модели

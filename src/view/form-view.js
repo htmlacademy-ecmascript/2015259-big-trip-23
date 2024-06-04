@@ -1,4 +1,4 @@
-import { CITIES, POINT_TYPES, DateFormat, ModeType } from '../const.js';
+import { POINT_TYPES, DateFormat, ModeType } from '../const.js';
 import { capitalizeFirstLetter, formatDateInForm } from '../utils/utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import 'flatpickr/dist/flatpickr.min.css';
 
 // Функция для рендеринга типов точек маршрута
-function renderRoutesTypes(id, offerType) {
+function renderEventTypes(id, offerType) {
   return POINT_TYPES.map((type) => `
         <div class="event__type-item">
           <input
@@ -27,8 +27,8 @@ function renderRoutesTypes(id, offerType) {
 }
 
 // Функция для рендеринга доступных предложений
-function renderOffersTypes(offersTypes, pointOffers, id) {
-  if (offersTypes && offersTypes.length === 0) {
+function renderOffersTypes(offersTypes, pointOffers, isDisabled) {
+  if (!offersTypes || offersTypes.length === 0) {
     return '';
   }
 
@@ -40,12 +40,13 @@ function renderOffersTypes(offersTypes, pointOffers, id) {
           <div class="event__offer-selector">
             <input
               class="event__offer-checkbox visually-hidden"
-              id="event-offer-${offerType.title}-${id}"
+              id="event-offer-${offerType.id}"
               type="checkbox"
               name="event-offer-${offerType.title}"
               ${pointOffers.includes(offerType) ? 'checked' : ''}
+              ${isDisabled ? 'disabled' : ''}
             >
-            <label class="event__offer-label" for="event-offer-${offerType.title}-${id}">
+            <label class="event__offer-label" for="event-offer-${offerType.id}">
               <span class="event__offer-title">${offerType.title}</span>
               &plus;&euro;&nbsp;
               <span class="event__offer-price">${offerType.price}</span>
@@ -57,8 +58,8 @@ function renderOffersTypes(offersTypes, pointOffers, id) {
 }
 
 // Функция для рендеринга информации о месте назначения
-function renderPointDestination(id, pointDest) {
-  if (!pointDest || !pointDest.description || !pointDest.pictures || pointDest.pictures.length === 0) {
+function renderEventDestination(pointDest) {
+  if (!pointDest || !pointDest.description || pointDest.pictures.length === 0) {
     return '';
   }
 
@@ -80,10 +81,10 @@ function renderPointDestination(id, pointDest) {
 }
 
 // Функция для рендеринга списка городов в поле ввода назначения
-const renderCityOptionsList = () => CITIES.map((city) => `<option value="${city}"></option>`).join('');
+const renderCityOptionsList = (destinations) => destinations.map((destination) => `<option value="${destination.name}"></option>`).join('');
 
 // Функция для рендеринга обертки типа маршрута
-function renderTypeWrapper(id, routesTypesMarkup, offerType) {
+function renderTypeWrapper(id, routesTypesMarkup, offerType, isDisabled) {
   return `
     <div class="event__type-wrapper">
       <label class="event__type  event__type-btn" for="event-type-toggle-${id}">
@@ -92,7 +93,7 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType) {
       </label>
       <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${id}" type="checkbox">
       <div class="event__type-list">
-        <fieldset class="event__type-group">
+        <fieldset class="event__type-group" ${isDisabled ? 'disabled' : ''}>
           <legend class="visually-hidden">Event type</legend>
           ${routesTypesMarkup}
         </fieldset>
@@ -101,7 +102,7 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType) {
 }
 
 // Функция для рендеринга полей события
-function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination) {
+function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled) {
   const humanizesDuration = (date) => {
     if (date) {
       return `${formatDateInForm(date, DateFormat.FULL)} ${formatDateInForm(date, DateFormat.TIME)}`;
@@ -121,10 +122,11 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           name="event-destination"
           value="${pointDestination?.name || ''}"
           list="destination-list-${id}"
+          ${isDisabled ? 'disabled' : ''}
           required
         >
         <datalist id="destination-list-${id}">
-          ${renderCityOptionsList(id)}
+          ${renderCityOptionsList(destinations)}
         </datalist>
       </div>
       <div class="event__field-group  event__field-group--time">
@@ -135,6 +137,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           type="text"
           name="event-start-time"
           value="${humanizesDuration(dateFrom)}"
+          ${isDisabled ? 'disabled' : ''}
           required
         >
         &mdash;
@@ -145,6 +148,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           type="text"
           name="event-end-time"
           value="${humanizesDuration(dateTo)}"
+          ${isDisabled ? 'disabled' : ''}
           required
         >
       </div>
@@ -161,6 +165,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
         pattern="^[ 0-9]+$"
         name="event-price"
         value="${basePrice}"
+        ${isDisabled ? 'disabled' : ''}
         required>
       </div>`;
 }
@@ -168,34 +173,30 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
 // Функция для создания шаблона формы редактирования события
 function createEditFormTemplate(point, destinations = [], offers, mode) {
   const {
-    basePrice,
-    dateFrom,
-    dateTo,
-    destination,
-    type: offerType,
-    offers: offersList,
-    id,
+    basePrice, dateFrom, dateTo, destination,
+    type: offerType, offers: offersList,
+    id, isDisabled, isSaving, isDeleting,
   } = point;
   const pointDestination = destinations.find((dest) => dest.id === destination);
-  const typeOffers = offers.find((offer) => offer?.type === offerType).offers;
-  const pointOffers = typeOffers.filter((typeOffer) => offersList.includes(typeOffer?.id));
+  const typeOffers = offers.find((offer) => offer?.type === offerType).offers || [];
+  const pointOffers = typeOffers.filter((typeOffer) => offersList.includes(typeOffer.id));
 
-  const routesTypesMarkup = renderRoutesTypes(id, offerType);
-  const routesTypesWrapperMarkup = renderTypeWrapper(id, routesTypesMarkup, offerType);
-  const offersTypesMarkup = renderOffersTypes(typeOffers, pointOffers, id);
-  const pointDestinationMarkup = renderPointDestination(id, pointDestination);
-  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination);
+  const routesTypesMarkup = renderEventTypes(id, offerType);
+  const routesTypesWrapperMarkup = renderTypeWrapper(id, routesTypesMarkup, offerType, isDisabled);
+  const offersTypesMarkup = renderOffersTypes(typeOffers, pointOffers, isDisabled);
+  const pointDestinationMarkup = renderEventDestination(pointDestination);
+  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled);
 
   return (
     `<form class="event event--edit" action="#" method="post">
         <header class="event__header">
           ${routesTypesWrapperMarkup}
           ${eventFieldGroupsMarkup}
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">${mode === ModeType.CREATE_NEW ? 'Сancel' : 'Delete'}</button>
-          <button class="event__rollup-btn" type="button">
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
+          <button class="event__reset-btn" type="reset" ${isDeleting ? 'disabled' : ''}>${mode === ModeType.CREATE_NEW ? 'Сancel' : 'Delete'}</button>
+          ${mode !== ModeType.CREATE_NEW ? `<button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Open event</span>
-          </button>
+          </button>` : ''}
         </header>
         <section class="event__details">
           ${offersTypesMarkup}
@@ -354,13 +355,22 @@ export default class FormView extends AbstractStatefulView {
 
   // Преобразование данных события в состояние представления
   static parsePointToState(point) {
-    return { ...point };
+    return {
+      ...point,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+    };
   }
 
   // Преобразование состояния представления в данные события
   static parseStateToPoint(state) {
-    const point = { ...state };
+    const states = { ...state };
 
-    return point;
+    delete states.isDisabled;
+    delete states.isSaving;
+    delete states.isDeleting;
+
+    return states;
   }
 }
