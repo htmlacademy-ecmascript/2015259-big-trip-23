@@ -1,21 +1,48 @@
-import { POINTS_COUNT } from '../const.js';
+import { UpdateType } from '../const.js';
 import { mockDestinations } from '../mocks/destination-mock.js';
 import { mockOffers } from '../mocks/offers-mock.js';
-import { getRandomPoint } from '../mocks/points-mock.js';
 import Observable from '../framework/observable.js';
 
 export default class PointsModel extends Observable {
   #points = [];
   #destinations = [];
   #offers = [];
+  #pointsApiService = null;
 
-  constructor() {
+  constructor({ pointsApiService }) {
     super();
-    this.initPoints();
+    this.#pointsApiService = pointsApiService;
+  }
+
+  #adaptToClient(point) {
+    const adaptedPoint = {
+      ...point,
+      basePrice: point['base_price'],
+      dateFrom: point['date_from'],
+      dateTo: point['date_to'],
+      isFavorite: point['is_favorite'],
+    };
+
+    delete adaptedPoint['base_price'];
+    delete adaptedPoint['date_from'];
+    delete adaptedPoint['date_to'];
+    delete adaptedPoint['is_favorite'];
+
+    return adaptedPoint;
+  }
+
+  async init() {
+    try {
+      const points = await this.#pointsApiService.points;
+      this.#points = points.map(this.#adaptToClient);
+    } catch (err) {
+      this.#points = [];
+    }
+
+    this._notify(UpdateType.INIT);
   }
 
   initPoints() {
-    this.#points = Array.from({ length: POINTS_COUNT }, () => getRandomPoint());
     this.#destinations = mockDestinations;
     this.#offers = mockOffers;
   }

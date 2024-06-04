@@ -2,8 +2,10 @@ const CITIES = ['Limassol', 'Hague', 'Geneva', 'Berlin', 'Stockholm'];
 const POINT_TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 
 const SORTS = ['day', 'event', 'time', 'price', 'offers'];
-const POINTS_COUNT = 3;
+
 const VALID_DATA_LENGTH = 2;
+const AUTHORIZATION = 'Basic k3u5b8v9h2g6z1x0';
+const END_POINT = 'https://21.objects.pages.academy/big-trip';
 
 const DateFormat = {
   DATE: 'MMM DD',
@@ -62,12 +64,12 @@ const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
+  INIT: 'INIT',
 };
 
 export {
   CITIES,
   POINT_TYPES,
-  POINTS_COUNT,
   DateFormat,
   FilterType,
   SORTS,
@@ -78,5 +80,7 @@ export {
   UserAction,
   UpdateType,
   NEW_POINT,
-  VALID_DATA_LENGTH
+  VALID_DATA_LENGTH,
+  AUTHORIZATION,
+  END_POINT
 };
