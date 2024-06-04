@@ -20,11 +20,13 @@ const boardPresenter = new BoardPresenter({
   onNewPointDestroy: handleNewPointFormClose,
 });
 
-pointsModel.init();
-
 const newPointButtonComponent = new NewPointButtonView({
   onClick: handleNewPointButtonClick
 });
+
+boardPresenter.init();
+pointsModel.init();
+render(newPointButtonComponent, buttonContainer);
 
 function handleNewPointFormClose() {
   newPointButtonComponent.element.disabled = false;
@@ -34,8 +36,3 @@ function handleNewPointButtonClick() {
   boardPresenter.createPoint();
   newPointButtonComponent.element.disabled = true;
 }
-
-pointsModel.initPoints();
-boardPresenter.init();
-render(newPointButtonComponent, buttonContainer);
-

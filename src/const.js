@@ -5,7 +5,7 @@ const SORTS = ['day', 'event', 'time', 'price', 'offers'];
 
 const VALID_DATA_LENGTH = 2;
 const AUTHORIZATION = 'Basic k3u5b8v9h2g6z1x0';
-const END_POINT = 'https://21.objects.pages.academy/big-trip';
+const END_POINT = 'https://23.objects.htmlacademy.pro/big-trip';
 
 const DateFormat = {
   DATE: 'MMM DD',
