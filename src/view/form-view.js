@@ -103,13 +103,8 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType, isDisabled) {
 
 // Функция для рендеринга полей события
 function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled) {
-  const humanizesDuration = (date) => {
-    if (date) {
-      return `${formatDateInForm(date, DateFormat.FULL)} ${formatDateInForm(date, DateFormat.TIME)}`;
-    } else {
-      return '';
-    }
-  };
+  const formatDateTimeForDisplay = (date) => date ? `${formatDateInForm(date, DateFormat.FULL)} ${formatDateInForm(date, DateFormat.TIME)}` : '';
+
   return `
       <div class="event__field-group  event__field-group--destination">
         <label class="event__label event__type-output" for="event-destination-${id}">
@@ -136,7 +131,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           id="event-start-time-${id}"
           type="text"
           name="event-start-time"
-          value="${humanizesDuration(dateFrom)}"
+          value="${formatDateTimeForDisplay(dateFrom)}"
           ${isDisabled ? 'disabled' : ''}
           required
         >
@@ -147,7 +142,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           id="event-end-time-${id}"
           type="text"
           name="event-end-time"
-          value="${humanizesDuration(dateTo)}"
+          value="${formatDateTimeForDisplay(dateTo)}"
           ${isDisabled ? 'disabled' : ''}
           required
         >
@@ -193,10 +188,12 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
           ${routesTypesWrapperMarkup}
           ${eventFieldGroupsMarkup}
           <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
-          <button class="event__reset-btn" type="reset" ${isDeleting ? 'disabled' : ''}>${mode === ModeType.CREATE_NEW ? 'Сancel' : 'Delete'}</button>
-          ${mode !== ModeType.CREATE_NEW ? `<button class="event__rollup-btn" type="button">
+          <button class="event__reset-btn" type="reset" ${isDeleting ? 'disabled' : ''}>
+          ${mode === ModeType.CREATE_NEW ? 'Сancel' : 'Delete'}
+          </button>
+          <button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Open event</span>
-          </button>` : ''}
+          </button>
         </header>
         <section class="event__details">
           ${offersTypesMarkup}
@@ -277,7 +274,13 @@ export default class FormView extends AbstractStatefulView {
   // Обработчик отправки формы
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit({ ...this._state });
+    const form = this.element.querySelector('.event--edit');
+    const { dateFrom, dateTo, destination } = this._state;
+    if (form.checkValidity() && dateTo !== '' && dateFrom !== '' && destination) {
+      this.#handleFormSubmit(FormView.parseStateToPoint(this._state));
+    } else {
+      this.shake();
+    }
   };
 
   // Установка виджетов выбора даты и времени

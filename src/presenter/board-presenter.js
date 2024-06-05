@@ -51,7 +51,7 @@ export default class BoardPresenter {
       onDataChange: this.#handleViewAction,
       pointsModel: this.#pointsModel,
       onModeChange: this.#handleModeChange,
-      onDestroy: this.#onNewPointDestroy,
+      onDestroy: this.onNewPointDestroy.bind(this),
     });
 
   }
@@ -71,10 +71,21 @@ export default class BoardPresenter {
     }
   }
 
+  onNewPointDestroy() {
+    if (this.points.length === 0) {
+      this.#renderNoPoints();
+    }
+    this.#onNewPointDestroy();
+  }
+
   createPoint() {
     this.#currentSortType = SortType.DAY;
     this.#filterModel.setFilter(UpdateType.MINOR, FilterType.EVERYTHING);
     this.#newPointPresenter.init();
+
+    if (this.#noPointComponent) {
+      remove(this.#noPointComponent);
+    }
   }
 
   #filterPoints(points) {
