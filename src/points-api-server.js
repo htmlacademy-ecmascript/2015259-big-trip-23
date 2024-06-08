@@ -48,6 +48,7 @@ export default class PointsApiService extends ApiService {
       headers: new Headers({'Content-Type': 'application/json'}),
     });
 
+    ApiService.checkStatus(response);
     const parsedResponse = await ApiService.parseResponse(response);
 
     return parsedResponse;
@@ -61,6 +62,7 @@ export default class PointsApiService extends ApiService {
       headers: new Headers({'Content-Type': 'application/json'}),
     });
 
+    ApiService.checkStatus(response);
     const parsedResponse = await ApiService.parseResponse(response);
 
     return parsedResponse;
@@ -72,6 +74,7 @@ export default class PointsApiService extends ApiService {
       method: Method.DELETE,
     });
 
+    ApiService.checkStatus(response);
     return response;
   }
 }

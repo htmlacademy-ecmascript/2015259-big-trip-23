@@ -7,7 +7,7 @@ import { AUTHORIZATION, END_POINT } from './const.js';
 import { render } from './framework/render.js';
 
 const boardContainerElement = document.querySelector('.trip-events');
-const buttonContainer = document.querySelector('.trip-main');
+const buttonContainerElement = document.querySelector('.trip-main');
 const pointsModel = new PointsModel({
   pointsApiService: new PointsApiService(END_POINT, AUTHORIZATION)
 });
@@ -17,22 +17,31 @@ const boardPresenter = new BoardPresenter({
   boardContainer: boardContainerElement,
   pointsModel,
   filterModel,
-  onNewPointDestroy: handleNewPointFormClose,
+  onNewPointDestroy: newPointFormCloseHandler,
+  onLoaded: boardLoadedHandler,
 });
 
 const newPointButtonComponent = new NewPointButtonView({
-  onClick: handleNewPointButtonClick
+  onClick: newPointButtonClickHandler
 });
 
 boardPresenter.init();
 pointsModel.init();
-render(newPointButtonComponent, buttonContainer);
+render(newPointButtonComponent, buttonContainerElement);
 
-function handleNewPointFormClose() {
-  newPointButtonComponent.element.disabled = false;
+function newPointFormCloseHandler() {
+  toggleDisableNewPointButton(false);
 }
 
-function handleNewPointButtonClick() {
+function newPointButtonClickHandler() {
   boardPresenter.createPoint();
-  newPointButtonComponent.element.disabled = true;
+  toggleDisableNewPointButton(true);
+}
+
+function boardLoadedHandler(isSuccess) {
+  toggleDisableNewPointButton(!isSuccess);
+}
+
+function toggleDisableNewPointButton (state) {
+  newPointButtonComponent.element.disabled = state;
 }

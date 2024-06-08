@@ -3,6 +3,7 @@ import { capitalizeFirstLetter, formatDateInForm } from '../utils/utils.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
 import dayjs from 'dayjs';
+import he from 'he';
 
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -36,23 +37,27 @@ function renderOffersTypes(offersTypes, pointOffers, isDisabled) {
     <section class="event__section event__section--offers">
       <h3 class="event__section-title event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-        ${offersTypes.map((offerType) => `
-          <div class="event__offer-selector">
-            <input
-              class="event__offer-checkbox visually-hidden"
-              id="event-offer-${offerType.id}"
-              type="checkbox"
-              name="event-offer-${offerType.title}"
-              ${pointOffers.includes(offerType) ? 'checked' : ''}
-              ${isDisabled ? 'disabled' : ''}
-            >
-            <label class="event__offer-label" for="event-offer-${offerType.id}">
-              <span class="event__offer-title">${offerType.title}</span>
-              &plus;&euro;&nbsp;
-              <span class="event__offer-price">${offerType.price}</span>
-            </label>
-          </div>
-        `).join('')}
+        ${offersTypes.map((offerType) => {
+    const isOfferSelected = pointOffers.some((offer) => offer.id === offerType.id);
+    return `
+            <div class="event__offer-selector">
+              <input
+                class="event__offer-checkbox visually-hidden"
+                id="event-offer-${offerType.id}"
+                type="checkbox"
+                name="event-offer-${offerType.title}"
+                data-offer-id="${offerType.id}"
+                ${isOfferSelected ? 'checked' : ''}
+                ${isDisabled ? 'disabled' : ''}
+              >
+              <label class="event__offer-label" for="event-offer-${offerType.id}">
+                <span class="event__offer-title">${he.encode(offerType.title)}</span>
+                &plus;&euro;&nbsp;
+                <span class="event__offer-price">${offerType.price}</span>
+              </label>
+            </div>
+          `;
+  }).join('')}
       </div>
     </section>`;
 }
@@ -73,7 +78,7 @@ function renderEventDestination(pointDest) {
       ${pictures.length ? `
         <div class="event__photos-container">
           <div class="event__photos-tape">
-            ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`).join('')}
+            ${pictures.map((picture) => `<img class="event__photo" src="${picture.src}" alt="${he.encode(picture.description)}">`).join('')}
           </div>
         </div>
       ` : ''}
@@ -115,7 +120,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           id="event-destination-${id}"
           type="text"
           name="event-destination"
-          value="${pointDestination?.name || ''}"
+          value="${he.encode(pointDestination?.name || '')}"
           list="destination-list-${id}"
           ${isDisabled ? 'disabled' : ''}
           required
@@ -159,7 +164,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
         min=1
         pattern="^[ 0-9]+$"
         name="event-price"
-        value="${basePrice}"
+        value="${he.encode(String(basePrice))}"
         ${isDisabled ? 'disabled' : ''}
         required>
       </div>`;
@@ -205,11 +210,11 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
 
 // Класс представления формы редактирования события
 export default class FormView extends AbstractStatefulView {
-  #handleFormSubmit = null;
-  #handleFormClose = null;
+  #formSubmitedHandler = null;
+  #formClosedHandler = null;
   #dateFrom = null;
   #dateTo = null;
-  #handleDeleteClick = null;
+  #deleteClickHandler = null;
   #modeType = null;
 
   constructor({ point, boardDestinations, boardOffers, onFormSubmit, onCloseForm, onDeleteClick, mode }) {
@@ -217,9 +222,9 @@ export default class FormView extends AbstractStatefulView {
     this.point = point;
     this.destinations = boardDestinations;
     this.offers = boardOffers;
-    this.#handleFormSubmit = onFormSubmit;
-    this.#handleFormClose = onCloseForm;
-    this.#handleDeleteClick = onDeleteClick;
+    this.#formSubmitedHandler = onFormSubmit;
+    this.#formClosedHandler = onCloseForm;
+    this.#deleteClickHandler = onDeleteClick;
     this.#modeType = mode;
     this._setState(FormView.parsePointToState(point));
     this._restoreHandlers();
@@ -262,22 +267,22 @@ export default class FormView extends AbstractStatefulView {
   // Обработчик закрытия формы
   #formCloseHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormClose();
+    this.#formClosedHandler();
   };
 
   // Обработчик удаления события
   #formDeleteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleDeleteClick(FormView.parseStateToPoint(this._state));
+    this.#deleteClickHandler(FormView.parseStateToPoint(this._state));
   };
 
   // Обработчик отправки формы
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    const form = this.element.querySelector('.event--edit');
+    const formElement = this.element.querySelector('.event--edit');
     const { dateFrom, dateTo, destination } = this._state;
-    if (form.checkValidity() && dateTo !== '' && dateFrom !== '' && destination) {
-      this.#handleFormSubmit(FormView.parseStateToPoint(this._state));
+    if (formElement.checkValidity() && dateTo !== '' && dateFrom !== '' && destination) {
+      this.#formSubmitedHandler(FormView.parseStateToPoint(this._state));
     } else {
       this.shake();
     }
