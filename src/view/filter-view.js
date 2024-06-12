@@ -48,7 +48,14 @@ export default class FilterView extends AbstractView {
     this.#filtersTypeChangeHandler = onFilterTypeChange;
     this.#currentFilter = currentFilterType;
     this.element.addEventListener('change', this.#filterTypeChangeHandler.bind(this));
+    this.updateSelectedFilterButton = this.updateSelectedFilterButton.bind(this);
+
+    const everythingInput = this.element.querySelector('#filter-everything');
+    if (everythingInput) {
+      everythingInput.checked = true;
+    }
   }
+
 
   get template() {
     return createFilterTemplate(this.#filters, this.#currentFilter);
@@ -60,4 +67,11 @@ export default class FilterView extends AbstractView {
     }
     this.#filtersTypeChangeHandler(evt.target.value);
   };
+
+  updateSelectedFilterButton(filterType) {
+    const filter = this.element.querySelector(`#filter-${filterType}`);
+    if (filter) {
+      filter.checked = true;
+    }
+  }
 }

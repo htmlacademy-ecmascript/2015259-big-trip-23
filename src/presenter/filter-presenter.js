@@ -1,6 +1,6 @@
-import {render, replace, remove} from '../framework/render.js';
+import { render, replace, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
-import {FilterType, RenderPosition, UpdateType} from '../const.js';
+import { FilterType, RenderPosition, UpdateType } from '../const.js';
 import { filtersGenerateInfo } from '../utils/filter.js';
 
 export default class FilterPresenter {
@@ -10,7 +10,7 @@ export default class FilterPresenter {
 
   #filterComponent = null;
 
-  constructor({filterContainer, filterModel, pointsModel}) {
+  constructor({ filterContainer, filterModel, pointsModel }) {
     this.#filterContainer = filterContainer;
     this.#filterModel = filterModel;
     this.#pointsModel = pointsModel;
@@ -57,5 +57,10 @@ export default class FilterPresenter {
     }
 
     this.#filterModel.setFilter(UpdateType.MAJOR, filterType);
+    this.#updateSelectedFilterButton(filterType);
+  };
+
+  #updateSelectedFilterButton = (filterType) => {
+    this.#filterComponent.updateSelectedFilterButton(filterType);
   };
 }

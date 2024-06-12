@@ -3,7 +3,7 @@ import AbstractView from '../framework/view/abstract-view.js';
 import { capitalizeFirstLetter } from '../utils/utils.js';
 
 
-function renderSortItem(sort, currentSortType) {
+function renderSortItem(sort) {
   return `
       <div class="trip-sort__item trip-sort__item--${sort}">
           <input
@@ -13,7 +13,7 @@ function renderSortItem(sort, currentSortType) {
               name="trip-sort"
               value="sort-${sort}"
               ${sort === 'offers' || sort === 'event' ? 'disabled' : ''}
-              ${currentSortType === sort ? 'checked' : ''}
+              ${sort === 'day' ? 'checked' : ''}
               data-sort-type="${sort}"
           >
           <label class="trip-sort__btn" for="sort-${sort}">${capitalizeFirstLetter(sort)}</label>

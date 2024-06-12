@@ -33,7 +33,7 @@ export default class BoardPresenter {
     upperLimit: TimeLimit.UPPER_LIMIT
   });
 
-  constructor({ boardContainer, pointsModel, filterModel, onNewPointDestroy,onLoaded }) {
+  constructor({ boardContainer, pointsModel, filterModel, onNewPointDestroy, onLoaded }) {
     this.#boardContainer = boardContainer;
     this.#pointsModel = pointsModel;
     this.#filterModel = filterModel;
@@ -47,6 +47,7 @@ export default class BoardPresenter {
     this.#renderBoard();
     this.#renderFilters();// Отображение фильтров
     this.#renderHeaderInfo();
+    this.#renderSort();
     remove(this.#errorMessageComponent);
 
     this.#newPointPresenter = new NewPointPresenter({
@@ -88,6 +89,24 @@ export default class BoardPresenter {
     if (this.#noPointComponent) {
       remove(this.#noPointComponent);
     }
+
+    const sortInputs = document.querySelectorAll('.trip-sort__input');
+    sortInputs.forEach((input) => {
+      if (input.id !== 'sort-day') {
+        input.checked = false;
+      } else {
+        input.checked = true;
+      }
+    });
+
+    const filterInputs = document.querySelectorAll('.trip-filters__filter-input');
+    filterInputs.forEach((input) => {
+      if (input.id !== 'filter-everything') {
+        input.checked = false;
+      } else {
+        input.checked = true;
+      }
+    });
   }
 
   #filterPoints(points) {
@@ -128,8 +147,6 @@ export default class BoardPresenter {
     points.forEach((point) => {
       this.#renderPoint(point, boardDestinations, boardOffers);
     });
-
-    this.#renderSort();
   }
 
   #renderFilters() {
@@ -186,12 +203,14 @@ export default class BoardPresenter {
         }
         break;
       case UserAction.ADD_POINT: // Добавление новой точки маршрута
+        this.#uiBlocker.block();
         this.#newPointPresenter.setSaving();
         try {
           await this.#pointsModel.addPoint(updateType, update);
         } catch (err) {
           this.#newPointPresenter.setAborting();
         }
+        this.#uiBlocker.unblock();
         break;
       case UserAction.DELETE_POINT: // Удаление точки маршрута
         this.#pointPresenters.get(update.id).setDeleting();
@@ -220,6 +239,8 @@ export default class BoardPresenter {
       case UpdateType.MAJOR:
         //обновление всей доски (например, при переключении фильтра)
         this.#clearBoard({ resetSortType: true });
+        remove(this.#sortComponent);
+        this.#renderSort();
         this.#currentSortType = SortType.DAY;
         this.#renderBoard();
         break;
@@ -280,7 +301,7 @@ export default class BoardPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#newPointPresenter.destroy();
     this.#pointPresenters.clear();
-    remove(this.#sortComponent);
+    remove(this.#loadingComponent);
     if (this.#noPointComponent) {
       remove(this.#noPointComponent);
     }

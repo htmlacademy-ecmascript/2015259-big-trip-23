@@ -123,14 +123,14 @@ export default class PointPresenter {
 
   #buttonCloseHandler = () => {
     //Обработчик клика по кнопке закрытия
-    this.#pointEditComponent.reset(); //Сбрасываем данные формы редактирования
+    this.#pointEditComponent.reset(this.#point); //Сбрасываем данные формы редактирования
     this.#replaceFormToPoint(); // Заменяем форму редактирования на отображение точки
   };
 
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
-      this.#pointEditComponent.reset(); // Сбрасываем данные формы редактирования
+      this.#pointEditComponent.reset(this.#point); // Сбрасываем данные формы редактирования
       this.#replaceFormToPoint(); // Заменяем форму на точку
     }
   };
@@ -163,12 +163,23 @@ export default class PointPresenter {
       this.#point.basePrice !== update.basePrice
     );
 
+    // Предполагаем, что dataChangeHandler возвращает Promise
     this.#dataChangeHandler(
-      UserAction.UPDATE_POINT, // Вызываем действие пользователя для обновления точки
-      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH, // Указываем тип обновления как минорный
-      update, // Передаем точку данных
-    );
-    this.#replaceFormToPoint();
+      UserAction.UPDATE_POINT,
+      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
+      update
+    ).then((response) => {
+      if (!response) {
+        // Если обновление не удаётся, активируем анимацию "качания головой"
+        this.#pointEditComponent.shake();
+      } else {
+        // Если обновление успешно, заменяем форму на точку
+        this.#replaceFormToPoint();
+      }
+    }).catch(() => {
+      // В случае ошибки также активируем анимацию "качания головой"
+      this.#pointEditComponent.shake();
+    });
   };
 
   #deleteClickHandler = (point) => {

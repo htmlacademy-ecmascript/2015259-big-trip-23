@@ -20,7 +20,7 @@ const NEW_POINT = {
   destination: '',
   isFavorite: false,
   offers: [],
-  type: POINT_TYPES[3]
+  type: POINT_TYPES[5]
 };
 
 const RenderPosition = {
@@ -36,7 +36,7 @@ const FilterType = {
   PAST: 'past',
 };
 const EmptyFiltersList = {
-  everything: 'Click "New Event" to create your first point',
+  everything: 'Click New Event to create your first point',
   past: 'There are no past events now',
   present: 'There are no present events now',
   future: 'There are no future events now',

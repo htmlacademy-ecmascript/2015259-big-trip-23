@@ -107,7 +107,7 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType, isDisabled) {
 }
 
 // Функция для рендеринга полей события
-function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled) {
+function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled, isUpdating) {
   const formatDateTimeForDisplay = (date) => date ? `${formatDateInForm(date, DateFormat.FULL)} ${formatDateInForm(date, DateFormat.TIME)}` : '';
 
   return `
@@ -122,7 +122,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           name="event-destination"
           value="${he.encode(pointDestination?.name || '')}"
           list="destination-list-${id}"
-          ${isDisabled ? 'disabled' : ''}
+          ${isDisabled || isUpdating ? 'disabled' : ''}
           required
         >
         <datalist id="destination-list-${id}">
@@ -176,6 +176,7 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
     basePrice, dateFrom, dateTo, destination,
     type: offerType, offers: offersList,
     id, isDisabled, isSaving, isDeleting,
+    isUpdating,
   } = point;
   const pointDestination = destinations.find((dest) => dest.id === destination);
   const typeOffers = offers.find((offer) => offer?.type === offerType).offers || [];
@@ -185,17 +186,17 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
   const routesTypesWrapperMarkup = renderTypeWrapper(id, routesTypesMarkup, offerType, isDisabled);
   const offersTypesMarkup = renderOffersTypes(typeOffers, pointOffers, isDisabled);
   const pointDestinationMarkup = renderEventDestination(pointDestination);
-  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled);
+  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled, isUpdating);
 
   return (
-    `<form class="event event--edit" action="#" method="post">
+    `<li class="trip-events__item">
+      <form class="event event--edit" action="#" method="post">
         <header class="event__header">
           ${routesTypesWrapperMarkup}
           ${eventFieldGroupsMarkup}
-          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
-          <button class="event__reset-btn" type="reset" ${isDeleting ? 'disabled' : ''}>
-          ${mode === ModeType.CREATE_NEW ? 'Сancel' : 'Delete'}
-          </button>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving || isUpdating ? 'disabled' : ''}>${isSaving || isUpdating ? 'Saving...' : 'Save'}</button>
+          <button class="event__reset-btn" type="reset" ${(isDeleting) ? 'disabled' : ''}>
+          ${mode === ModeType.CREATE_NEW ? 'Cancel' : `${isDeleting ? 'Deleting...' : 'Delete'}`}</button>
           <button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Open event</span>
           </button>
@@ -203,8 +204,9 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
         <section class="event__details">
           ${offersTypesMarkup}
           ${pointDestination ? pointDestinationMarkup : ''}
-      </section>
-    </form>`
+        </section>
+      </form>
+    </li>`
   );
 }
 
@@ -233,6 +235,7 @@ export default class FormView extends AbstractStatefulView {
   _restoreHandlers() {
     this.element.querySelector('.event--edit')?.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#formCloseHandler);
+    this.element.querySelector('.event__rollup-btn')?.addEventListener('keydown', this.#formCloseOnEnterHandler);
     this.element.querySelector('.event__save-btn')?.addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group')?.addEventListener('change', this.#changeTransportTypeHandler);
     this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#selectOfferHandler);
@@ -270,16 +273,27 @@ export default class FormView extends AbstractStatefulView {
     this.#formClosedHandler();
   };
 
+  #formCloseOnEnterHandler = (evt) => {
+    if (evt.key === 'Enter' && !this._state.isDisabled) {
+      evt.preventDefault();
+      this.#formCloseHandler(evt);
+    }
+  };
+
   // Обработчик удаления события
   #formDeleteClickHandler = (evt) => {
     evt.preventDefault();
+    this._setState({ isDeleting: true });
+    this.updateElement();
     this.#deleteClickHandler(FormView.parseStateToPoint(this._state));
+    this.reset(this.point);
   };
 
   // Обработчик отправки формы
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    const formElement = this.element.querySelector('.event--edit');
+
+    const formElement = evt.target.closest('.event--edit');
     const { dateFrom, dateTo, destination } = this._state;
     if (formElement.checkValidity() && dateTo !== '' && dateFrom !== '' && destination) {
       this.#formSubmitedHandler(FormView.parseStateToPoint(this._state));

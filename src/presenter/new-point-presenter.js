@@ -31,7 +31,7 @@ export default class NewPointPresenter {
       mode: ModeType.CREATE_NEW
     });
 
-    render(this.#pointEditComponent, this.#pointListContainer, RenderPosition.AFTEREND);
+    render(this.#pointEditComponent, this.#pointListContainer, RenderPosition.AFTERBEGIN);
 
     document.addEventListener('keydown', this.#escKeyDownHandler);
   }
@@ -69,12 +69,22 @@ export default class NewPointPresenter {
   }
 
   #formSubmitHandler = (point) => {
+    this.setSaving();
+
     this.#dataChangeHandler(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
-      point,
-    );
-    this.destroy();
+      point
+    )
+      .then((result) => {
+        if (!result) {
+          throw new Error('Update failed');
+        }
+        this.destroy();
+      })
+      .catch(() => {
+        this.setAborting();
+      });
   };
 
   #deleteClickHandler = () => {
