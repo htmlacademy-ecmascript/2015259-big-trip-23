@@ -163,23 +163,11 @@ export default class PointPresenter {
       this.#point.basePrice !== update.basePrice
     );
 
-    // Предполагаем, что dataChangeHandler возвращает Promise
     this.#dataChangeHandler(
       UserAction.UPDATE_POINT,
       isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
-      update
-    ).then((response) => {
-      if (!response) {
-        // Если обновление не удаётся, активируем анимацию "качания головой"
-        this.#pointEditComponent.shake();
-      } else {
-        // Если обновление успешно, заменяем форму на точку
-        this.#replaceFormToPoint();
-      }
-    }).catch(() => {
-      // В случае ошибки также активируем анимацию "качания головой"
-      this.#pointEditComponent.shake();
-    });
+      update,
+    );
   };
 
   #deleteClickHandler = (point) => {

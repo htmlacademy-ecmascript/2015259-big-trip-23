@@ -107,7 +107,7 @@ function renderTypeWrapper(id, routesTypesMarkup, offerType, isDisabled) {
 }
 
 // Функция для рендеринга полей события
-function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled, isUpdating) {
+function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled) {
   const formatDateTimeForDisplay = (date) => date ? `${formatDateInForm(date, DateFormat.FULL)} ${formatDateInForm(date, DateFormat.TIME)}` : '';
 
   return `
@@ -122,7 +122,7 @@ function renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, poin
           name="event-destination"
           value="${he.encode(pointDestination?.name || '')}"
           list="destination-list-${id}"
-          ${isDisabled || isUpdating ? 'disabled' : ''}
+          ${isDisabled ? 'disabled' : ''}
           required
         >
         <datalist id="destination-list-${id}">
@@ -176,7 +176,6 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
     basePrice, dateFrom, dateTo, destination,
     type: offerType, offers: offersList,
     id, isDisabled, isSaving, isDeleting,
-    isUpdating,
   } = point;
   const pointDestination = destinations.find((dest) => dest.id === destination);
   const typeOffers = offers.find((offer) => offer?.type === offerType).offers || [];
@@ -186,7 +185,7 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
   const routesTypesWrapperMarkup = renderTypeWrapper(id, routesTypesMarkup, offerType, isDisabled);
   const offersTypesMarkup = renderOffersTypes(typeOffers, pointOffers, isDisabled);
   const pointDestinationMarkup = renderEventDestination(pointDestination);
-  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled, isUpdating);
+  const eventFieldGroupsMarkup = renderEventFieldGroups(id, dateFrom, dateTo, basePrice, offerType, pointDestination, destinations, isDisabled);
 
   return (
     `<li class="trip-events__item">
@@ -194,7 +193,7 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
         <header class="event__header">
           ${routesTypesWrapperMarkup}
           ${eventFieldGroupsMarkup}
-          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving || isUpdating ? 'disabled' : ''}>${isSaving || isUpdating ? 'Saving...' : 'Save'}</button>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaving ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
           <button class="event__reset-btn" type="reset" ${(isDeleting) ? 'disabled' : ''}>
           ${mode === ModeType.CREATE_NEW ? 'Cancel' : `${isDeleting ? 'Deleting...' : 'Delete'}`}</button>
           <button class="event__rollup-btn" type="button">
@@ -284,9 +283,7 @@ export default class FormView extends AbstractStatefulView {
   #formDeleteClickHandler = (evt) => {
     evt.preventDefault();
     this._setState({ isDeleting: true });
-    this.updateElement();
     this.#deleteClickHandler(FormView.parseStateToPoint(this._state));
-    this.reset(this.point);
   };
 
   // Обработчик отправки формы
@@ -296,35 +293,42 @@ export default class FormView extends AbstractStatefulView {
     const formElement = evt.target.closest('.event--edit');
     const { dateFrom, dateTo, destination } = this._state;
     if (formElement.checkValidity() && dateTo !== '' && dateFrom !== '' && destination) {
+      this._setState({ isSaving: true });
       this.#formSubmitedHandler(FormView.parseStateToPoint(this._state));
     } else {
       this.shake();
     }
   };
 
-  // Установка виджетов выбора даты и времени
   #setDatepicker() {
-    this.#dateFrom = flatpickr(
-      this.element.querySelector(`#event-start-time-${this.point.id}`),
+    const initDatepicker = (elementSelector, defaultDate, options) =>
+      flatpickr(
+        this.element.querySelector(elementSelector),
+        {
+          dateFormat: 'd/m/y H:i',
+          enableTime: true,
+          defaultDate,
+          'time_24hr': true,
+          ...options,
+        }
+      );
+
+    this.#dateFrom = initDatepicker(
+      `#event-start-time-${this.point.id}`,
+      this._state.dateFrom,
       {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        defaultDate: this._state.dateFrom,
         onChange: this.#dateFromChangeHandler,
-        'time_24hr': true,
         maxDate: this._state.dateTo,
-      },
+      }
     );
-    this.#dateTo = flatpickr(
-      this.element.querySelector(`#event-end-time-${this.point.id}`),
+
+    this.#dateTo = initDatepicker(
+      `#event-end-time-${this.point.id}`,
+      this._state.dateTo,
       {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        defaultDate: this._state.dateTo,
         onChange: this.#dateToChangeHandler,
-        'time_24hr': true,
         minDate: this._state.dateFrom,
-      },
+      }
     );
   }
 
