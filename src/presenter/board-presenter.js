@@ -230,6 +230,8 @@ export default class BoardPresenter {
       case UpdateType.PATCH:
         //обновление части списка (например, когда поменялось описание)
         this.#pointPresenters.get(data.id).init(data);
+        this.#clearBoard();
+        this.#renderBoard();
         break;
       case UpdateType.MINOR:
         //обновление списока (например, когда задача ушла в архив)

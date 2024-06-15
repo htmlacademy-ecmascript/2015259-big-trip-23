@@ -153,6 +153,7 @@ export default class PointPresenter {
   #editClickHandler = () => {
     // Обработчик клика по кнопке редактирования
     this.#replacePointToForm(); // Заменяем точку на форму редактирования
+    this.#pointEditComponent.reset(this.#point);
   };
 
   #formSubmitHandler = (update) => {
