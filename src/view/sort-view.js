@@ -3,7 +3,7 @@ import AbstractView from '../framework/view/abstract-view.js';
 import { capitalizeFirstLetter } from '../utils/utils.js';
 
 
-function renderSortItem(sort, currentSortType) {
+function renderSortItem(sort) {
   return `
       <div class="trip-sort__item trip-sort__item--${sort}">
           <input
@@ -13,7 +13,7 @@ function renderSortItem(sort, currentSortType) {
               name="trip-sort"
               value="sort-${sort}"
               ${sort === 'offers' || sort === 'event' ? 'disabled' : ''}
-              ${currentSortType === sort ? 'checked' : ''}
+              ${sort === 'day' ? 'checked' : ''}
               data-sort-type="${sort}"
           >
           <label class="trip-sort__btn" for="sort-${sort}">${capitalizeFirstLetter(sort)}</label>
@@ -30,13 +30,13 @@ function createSortTemplate(currentSortType) {
 }
 
 export default class SortView extends AbstractView {
-  #handleSortTypeChange = null;
+  #sortTypeEditHandler = null;
   #currentSortType = null;
 
   constructor({ onSortTypeChange, currentSortType }) {
     super();
 
-    this.#handleSortTypeChange = onSortTypeChange;
+    this.#sortTypeEditHandler = onSortTypeChange;
     this.#currentSortType = currentSortType;
     this.element.addEventListener('change', this.#sortTypeChangeHandler);
   }
@@ -49,7 +49,7 @@ export default class SortView extends AbstractView {
     const { sortType } = evt.target.dataset;
     if (evt.target.tagName === 'INPUT' && sortType !== 'offers' && sortType !== 'event') {
 
-      this.#handleSortTypeChange(sortType);
+      this.#sortTypeEditHandler(sortType);
     }
   };
 }

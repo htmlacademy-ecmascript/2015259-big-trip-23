@@ -39,16 +39,23 @@ function createFilterTemplate(filters, currentFilterType) {
 
 export default class FilterView extends AbstractView {
   #filters;
-  #handleFilterTypeChange;
+  #filtersTypeChangeHandler;
   #currentFilter;
 
   constructor({ filters, onFilterTypeChange, currentFilterType }) {
     super();
     this.#filters = filters;
-    this.#handleFilterTypeChange = onFilterTypeChange;
+    this.#filtersTypeChangeHandler = onFilterTypeChange;
     this.#currentFilter = currentFilterType;
     this.element.addEventListener('change', this.#filterTypeChangeHandler.bind(this));
+    this.updateSelectedFilterButton = this.updateSelectedFilterButton.bind(this);
+
+    const everythingInput = this.element.querySelector('#filter-everything');
+    if (everythingInput) {
+      everythingInput.checked = true;
+    }
   }
+
 
   get template() {
     return createFilterTemplate(this.#filters, this.#currentFilter);
@@ -58,6 +65,13 @@ export default class FilterView extends AbstractView {
     if (evt.target.tagName !== 'INPUT') {
       return;
     }
-    this.#handleFilterTypeChange(evt.target.value);
+    this.#filtersTypeChangeHandler(evt.target.value);
   };
+
+  updateSelectedFilterButton(filterType) {
+    const filter = this.element.querySelector(`#filter-${filterType}`);
+    if (filter) {
+      filter.checked = true;
+    }
+  }
 }

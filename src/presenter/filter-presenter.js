@@ -1,6 +1,6 @@
-import {render, replace, remove} from '../framework/render.js';
+import { render, replace, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
-import {FilterType, RenderPosition, UpdateType} from '../const.js';
+import { FilterType, RenderPosition, UpdateType } from '../const.js';
 import { filtersGenerateInfo } from '../utils/filter.js';
 
 export default class FilterPresenter {
@@ -10,13 +10,13 @@ export default class FilterPresenter {
 
   #filterComponent = null;
 
-  constructor({filterContainer, filterModel, pointsModel}) {
+  constructor({ filterContainer, filterModel, pointsModel }) {
     this.#filterContainer = filterContainer;
     this.#filterModel = filterModel;
     this.#pointsModel = pointsModel;
 
-    this.#pointsModel.addObserver(this.#handleModelEvent);
-    this.#filterModel.addObserver(this.#handleModelEvent);
+    this.#pointsModel.addObserver(this.#modelEventHandler);
+    this.#filterModel.addObserver(this.#modelEventHandler);
   }
 
   get filters() {
@@ -35,7 +35,7 @@ export default class FilterPresenter {
     this.#filterComponent = new FilterView({
       filters,
       currentFilterType: this.#filterModel.filter,
-      onFilterTypeChange: this.#handleFilterTypeChange
+      onFilterTypeChange: this.#filterTypeChangeHandler
     });
 
     if (prevFilterComponent === null) {
@@ -47,15 +47,20 @@ export default class FilterPresenter {
     remove(prevFilterComponent);
   }
 
-  #handleModelEvent = () => {
+  #modelEventHandler = () => {
     this.init();
   };
 
-  #handleFilterTypeChange = (filterType) => {
+  #filterTypeChangeHandler = (filterType) => {
     if (this.#filterModel.filter === filterType) {
       return;
     }
 
     this.#filterModel.setFilter(UpdateType.MAJOR, filterType);
+    this.#updateSelectedFilterButton(filterType);
+  };
+
+  #updateSelectedFilterButton = (filterType) => {
+    this.#filterComponent.updateSelectedFilterButton(filterType);
   };
 }

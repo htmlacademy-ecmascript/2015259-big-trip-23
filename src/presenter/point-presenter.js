@@ -9,21 +9,21 @@ export default class PointPresenter {
   #boardContainer = null; // Контейнер для отображения точки
   #pointComponent = null; // Компонент точки
   #pointEditComponent = null; // Компонент формы редактирования точки
-  #handleDataChange = null;
+  #dataChangeHandler = null;
   #boardOffers = null; // Предложения на доске
   #boardDestinations = null; // Места на доске
   #point = null; // Текущая точка
-  #handleModeChange = null; // Функция для обработки изменения режима
+  #modeChangeHandler = null; // Функция для обработки изменения режима
   #modeType = ModeType.VIEWING; // Режим по умолчанию
 
   constructor(boardContainer, onDataChange, point, boardDestinations, boardOffers, onModeChange) {
     // Конструктор принимает контейнер, функцию для обработки избранного, точку, места и предложения на доске, а также функцию для обработки изменения режима
     this.#boardContainer = boardContainer;
-    this.#handleDataChange = onDataChange;
+    this.#dataChangeHandler = onDataChange;
     this.#point = point;
     this.#boardDestinations = boardDestinations;
     this.#boardOffers = boardOffers;
-    this.#handleModeChange = onModeChange;
+    this.#modeChangeHandler = onModeChange;
   }
 
   init() {
@@ -47,7 +47,7 @@ export default class PointPresenter {
       boardOffers: this.#boardOffers,
       onFormSubmit: this.#formSubmitHandler, // Обработчик отправки формы
       onCloseForm: this.#buttonCloseHandler, //Обработчик закрытия формы
-      onDeleteClick: this.#handleDeleteClick,
+      onDeleteClick: this.#deleteClickHandler,
       mode: this.#modeType
     });
     if (prevPointComponent === null || prevPointEditComponent === null) {
@@ -123,14 +123,14 @@ export default class PointPresenter {
 
   #buttonCloseHandler = () => {
     //Обработчик клика по кнопке закрытия
-    this.#pointEditComponent.reset(); //Сбрасываем данные формы редактирования
+    this.#pointEditComponent.reset(this.#point); //Сбрасываем данные формы редактирования
     this.#replaceFormToPoint(); // Заменяем форму редактирования на отображение точки
   };
 
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
-      this.#pointEditComponent.reset(); // Сбрасываем данные формы редактирования
+      this.#pointEditComponent.reset(this.#point); // Сбрасываем данные формы редактирования
       this.#replaceFormToPoint(); // Заменяем форму на точку
     }
   };
@@ -139,7 +139,7 @@ export default class PointPresenter {
     // Метод для замены точки на форму редактирования
     replace(this.#pointEditComponent, this.#pointComponent); // Заменяем компонент точки на компонент формы редактирования
     document.addEventListener('keydown', this.#escKeyDownHandler); // Добавляем обработчик нажатия клавиши Escape
-    this.#handleModeChange(); // Обрабатываем изменение режима
+    this.#modeChangeHandler(); // Обрабатываем изменение режима
     this.#modeType = ModeType.EDITING; // Устанавливаем режим редактирования
   }
 
@@ -153,6 +153,7 @@ export default class PointPresenter {
   #editClickHandler = () => {
     // Обработчик клика по кнопке редактирования
     this.#replacePointToForm(); // Заменяем точку на форму редактирования
+    this.#pointEditComponent.reset(this.#point);
   };
 
   #formSubmitHandler = (update) => {
@@ -163,16 +164,15 @@ export default class PointPresenter {
       this.#point.basePrice !== update.basePrice
     );
 
-    this.#handleDataChange(
-      UserAction.UPDATE_POINT, // Вызываем действие пользователя для обновления точки
-      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH, // Указываем тип обновления как минорный
-      update, // Передаем точку данных
+    this.#dataChangeHandler(
+      UserAction.UPDATE_POINT,
+      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
+      update,
     );
-    this.#replaceFormToPoint();
   };
 
-  #handleDeleteClick = (point) => {
-    this.#handleDataChange(
+  #deleteClickHandler = (point) => {
+    this.#dataChangeHandler(
       UserAction.DELETE_POINT,
       UpdateType.MINOR,
       point,
@@ -181,6 +181,8 @@ export default class PointPresenter {
 
   #toggleFavoriteStateHandler = () => {
     // Обработчик переключения состояния избранного
-    this.#handleDataChange(UserAction.UPDATE_POINT, UpdateType.MINOR, { ...this.#point, isFavorite: !this.#point.isFavorite }); // Обрабатываем изменение избранного
+    this.#dataChangeHandler(UserAction.UPDATE_POINT,
+      UpdateType.MINOR, { ...this.#point, isFavorite: !this.#point.isFavorite }
+    ); // Обрабатываем изменение избранного
   };
 }

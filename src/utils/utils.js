@@ -5,6 +5,7 @@ const capitalizeFirstLetter = (str) => str[0]?.toUpperCase() + str?.slice(1);
 const formatDateInForm = (date, format) => date ? dayjs(date).format(format) : '';
 const isDatesSame = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, 'D');
 
+const transformToTimeToFormatReverse = (date) => formatDateInForm(date, DateFormat.REVERSE_DATE);
 const transformToDateFromFormat = (dateFrom) => formatDateInForm(dateFrom, DateFormat.DATE);
 const transformToTimeToFormat = (date) => formatDateInForm(date, DateFormat.TIME);
 const calculateDurationOfStay = (dateTo, dateFrom) => dayjs.duration(dayjs(dateTo).diff(dayjs(dateFrom)));
@@ -24,5 +25,6 @@ export {
   transformToTimeToFormat,
   calculateDurationOfStay,
   isDatesSame,
-  formatDurationToTwoCharacters
+  formatDurationToTwoCharacters,
+  transformToTimeToFormatReverse
 };

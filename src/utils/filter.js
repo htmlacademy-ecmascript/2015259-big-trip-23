@@ -19,15 +19,6 @@ const filtersGenerateInfo = {
   [FilterType.PAST]: (points) => points?.filter((point) => checkIsPointBefore(point.dateTo)),
 };
 
-function generateFilter(points) {
-  return Object.entries(filtersGenerateInfo).map(
-    ([filterType, filterPoints]) => ({
-      type: filterType,
-      count: filterPoints(points).length,
-    }),
-  );
-}
-
 function filterByFuture(points) {
   return points.filter((point) => checkIsPointAfter(point?.dateFrom));
 }
@@ -41,7 +32,6 @@ function filterByPresent(points) {
 }
 
 export {
-  generateFilter,
   filterByFuture,
   filterByPast,
   filterByPresent,

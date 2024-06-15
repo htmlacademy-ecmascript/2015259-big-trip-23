@@ -8,7 +8,7 @@ function createErrorPointTemplate() {
   );
 }
 
-export default class ErrroPointView extends AbstractView {
+export default class ErrorPointView extends AbstractView {
   get template() {
     return createErrorPointTemplate();
   }
