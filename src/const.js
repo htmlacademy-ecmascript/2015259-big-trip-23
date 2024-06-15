@@ -86,5 +86,5 @@ export {
   VALID_DATA_LENGTH,
   AUTHORIZATION,
   END_POINT,
-  TimeLimit
+  TimeLimit,
 };
