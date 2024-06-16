@@ -20,7 +20,7 @@ const NEW_POINT = {
   destination: '',
   isFavorite: false,
   offers: [],
-  type: POINT_TYPES[5]
+  type: POINT_TYPES[5],
 };
 
 const RenderPosition = {
@@ -86,5 +86,5 @@ export {
   VALID_DATA_LENGTH,
   AUTHORIZATION,
   END_POINT,
-  TimeLimit
+  TimeLimit,
 };
