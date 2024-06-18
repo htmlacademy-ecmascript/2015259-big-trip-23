@@ -9,7 +9,7 @@ const Method = {
 
 export default class PointsApiService extends ApiService {
   get points() {
-    return this._load({url: 'points'})
+    return this._load({ url: 'points' })
       .then(ApiService.parseResponse);
   }
 
@@ -27,8 +27,8 @@ export default class PointsApiService extends ApiService {
     const adaptedPoint = {
       ...point,
       'base_price': +point.basePrice,
-      'date_from': point.dateFrom,
-      'date_to': point.dateTo,
+      'date_from': point.dateFrom instanceof Date ? point.dateFrom.toISOString() : null,
+      'date_to': point.dateTo instanceof Date ? point.dateTo.toISOString() : null,
       'is_favorite': point.isFavorite || false,
     };
 
@@ -45,7 +45,7 @@ export default class PointsApiService extends ApiService {
       url: `points/${point.id}`,
       method: Method.PUT,
       body: JSON.stringify(this.#adaptToServer(point)),
-      headers: new Headers({'Content-Type': 'application/json'}),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
     ApiService.checkStatus(response);
@@ -59,7 +59,7 @@ export default class PointsApiService extends ApiService {
       url: 'points',
       method: Method.POST,
       body: JSON.stringify(this.#adaptToServer(point)),
-      headers: new Headers({'Content-Type': 'application/json'}),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
     ApiService.checkStatus(response);
@@ -77,4 +77,5 @@ export default class PointsApiService extends ApiService {
     ApiService.checkStatus(response);
     return response;
   }
+
 }

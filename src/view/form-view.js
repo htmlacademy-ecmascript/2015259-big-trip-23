@@ -178,7 +178,7 @@ function createEditFormTemplate(point, destinations = [], offers, mode) {
     id, isDisabled, isSaving, isDeleting,
   } = point;
   const pointDestination = destinations.find((dest) => dest.id === destination);
-  const typeOffers = offers.find((offer) => offer?.type === offerType).offers || [];
+  const typeOffers = offers.find((offer) => offer.type === offerType)?.offers || [];
   const pointOffers = typeOffers.filter((typeOffer) => offersList.includes(typeOffer.id));
 
   const routesTypesMarkup = renderEventTypes(id, offerType);
@@ -236,10 +236,10 @@ export default class FormView extends AbstractStatefulView {
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#formCloseHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('keydown', this.#formCloseOnEnterHandler);
     this.element.querySelector('.event__save-btn')?.addEventListener('click', this.#formSubmitHandler);
-    this.element.querySelector('.event__type-group')?.addEventListener('change', this.#changeTransportTypeHandler);
-    this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#selectOfferHandler);
-    this.element.querySelector('.event__input--price')?.addEventListener('change', this.#priceInputHandler);
-    this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputHandler);
+    this.element.querySelector('.event__type-group')?.addEventListener('change', this.#typeGroupChangeHandler);
+    this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#availableOffersChangeHandler);
+    this.element.querySelector('.event__input--price')?.addEventListener('change', this.#priceInputChangeHandler);
+    this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formDeleteClickHandler);
     this.#setDatepicker();
   }
@@ -347,19 +347,19 @@ export default class FormView extends AbstractStatefulView {
   };
 
   // Обработчик изменения типа транспорта
-  #changeTransportTypeHandler = (evt) => {
+  #typeGroupChangeHandler = (evt) => {
     evt.preventDefault();
     this.updateElement({ type: evt.target.value, offers: [] });
   };
 
   // Обработчик изменения цены
-  #priceInputHandler = (evt) => {
+  #priceInputChangeHandler = (evt) => {
     evt.preventDefault();
     this._setState({ basePrice: +evt.target.value });
   };
 
   // Обработчик выбора предложений
-  #selectOfferHandler = (evt) => {
+  #availableOffersChangeHandler = (evt) => {
     if (evt.target.tagName === 'INPUT') {
       if (evt.target.checked) {
         this._setState({ offers: [...this._state.offers, evt.target.dataset.offerId] });
@@ -370,7 +370,7 @@ export default class FormView extends AbstractStatefulView {
   };
 
   // Обработчик изменения пункта назначения
-  #destinationInputHandler = (evt) => {
+  #destinationInputChangeHandler = (evt) => {
     if (evt.target.tagName === 'INPUT') {
       const newDestination = this.destinations.find((dest) => dest?.name === evt.target.value);
       if (newDestination) {

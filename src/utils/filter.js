@@ -8,7 +8,7 @@ const checkIsPointBefore = (date) => dayjs(date).isBefore(dayjs(), 'D');
 const checkIsPointAfter = (date) => dayjs(date).isAfter(dayjs(), 'D');
 const checkIsPointRange = (point) => {
   const { dateFrom, dateTo } = point;
-  return dayjs().isBetween(dayjs(dateTo), dayjs(dateFrom), 'D');
+  return dayjs().isBetween(dayjs(dateFrom), dayjs(dateTo), 'D', '[]');
 };
 
 
