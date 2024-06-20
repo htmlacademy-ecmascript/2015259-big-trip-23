@@ -9,7 +9,7 @@ const Method = {
 
 export default class PointsApiService extends ApiService {
   get points() {
-    return this._load({url: 'points'})
+    return this._load({ url: 'points' })
       .then(ApiService.parseResponse);
   }
 
@@ -45,7 +45,7 @@ export default class PointsApiService extends ApiService {
       url: `points/${point.id}`,
       method: Method.PUT,
       body: JSON.stringify(this.#adaptToServer(point)),
-      headers: new Headers({'Content-Type': 'application/json'}),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
     ApiService.checkStatus(response);
@@ -59,7 +59,7 @@ export default class PointsApiService extends ApiService {
       url: 'points',
       method: Method.POST,
       body: JSON.stringify(this.#adaptToServer(point)),
-      headers: new Headers({'Content-Type': 'application/json'}),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
     ApiService.checkStatus(response);
@@ -77,4 +77,5 @@ export default class PointsApiService extends ApiService {
     ApiService.checkStatus(response);
     return response;
   }
+
 }
