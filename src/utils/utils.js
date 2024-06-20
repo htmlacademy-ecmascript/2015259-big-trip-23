@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { DateFormat, VALID_DATA_LENGTH } from '../const.js';
 
-const capitalizeFirstLetter = (text) => text[0]?.toUpperCase() + text?.slice(1);
+const capitalizeFirstLetter = (word) => word[0]?.toUpperCase() + word?.slice(1);
 const formatDateInForm = (date, format) => date ? dayjs(date).format(format) : '';
 const isDatesSame = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, 'D');
 

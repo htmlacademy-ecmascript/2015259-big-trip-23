@@ -236,8 +236,8 @@ export default class FormView extends AbstractStatefulView {
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#formCloseHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('keydown', this.#formCloseOnEnterHandler);
     this.element.querySelector('.event__save-btn')?.addEventListener('click', this.#formSubmitHandler);
-    this.element.querySelector('.event__type-group')?.addEventListener('change', this.#typeGroupChangeHandler);
-    this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#availableOffersChangeHandler);
+    this.element.querySelector('.event__type-group')?.addEventListener('change', this.#transportTypeChangeHandler);
+    this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#offerSelectorChangeHandler);
     this.element.querySelector('.event__input--price')?.addEventListener('change', this.#priceInputChangeHandler);
     this.element.querySelector('.event__input--destination')?.addEventListener('change', this.#destinationInputChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formDeleteClickHandler);
@@ -347,7 +347,7 @@ export default class FormView extends AbstractStatefulView {
   };
 
   // Обработчик изменения типа транспорта
-  #typeGroupChangeHandler = (evt) => {
+  #transportTypeChangeHandler = (evt) => {
     evt.preventDefault();
     this.updateElement({ type: evt.target.value, offers: [] });
   };
@@ -359,7 +359,7 @@ export default class FormView extends AbstractStatefulView {
   };
 
   // Обработчик выбора предложений
-  #availableOffersChangeHandler = (evt) => {
+  #offerSelectorChangeHandler = (evt) => {
     if (evt.target.tagName === 'INPUT') {
       if (evt.target.checked) {
         this._setState({ offers: [...this._state.offers, evt.target.dataset.offerId] });
